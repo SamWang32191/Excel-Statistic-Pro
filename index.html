@@ -13,8 +13,8 @@
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-iqpw3dRU.js"></script>
-  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index--NL8btHH.css">
+  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-CLiwM5LH.js"></script>
+  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-J6yy5sMK.css">
 </head>
 
 <body>
@@ -74,6 +74,11 @@
                 </div>
 
                 <div id="serviceRegisterCols" class="column-inputs hidden">
+                    <div class="input-group">
+                        <label for="headerRowIdx">標頭行數 (預設: 5)</label>
+                        <input type="number" id="headerRowIdx" value="5" min="1" placeholder="5"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    </div>
                     <div class="input-group">
                         <label for="districtCol">行政區列 (例如: U)</label>
                         <input type="text" id="districtCol" value="U" placeholder="U，只能輸入英文" maxlength="2"
