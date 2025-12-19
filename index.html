@@ -11,8 +11,8 @@
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-DC3pETmI.js"></script>
-  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-D0nhhZ7A.css">
+  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-DvaEuCX4.js"></script>
+  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-Bcozb5CZ.css">
 </head>
 
 <body>
@@ -26,8 +26,16 @@
         <main>
             <section class="config-section">
                 <div class="input-group">
-                    <label for="rocDate">工作表月份 (民國年月)</label>
-                    <input type="text" id="rocDate" placeholder="例如: 11403" maxlength="5">
+                    <label for="citySelect">縣市</label>
+                    <select id="citySelect">
+                        <option value="" disabled selected>請選擇縣市</option>
+                        <option value="台北">台北</option>
+                        <option value="新北">新北</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="rocDate">月份</label>
+                    <input type="text" id="rocDate" placeholder="例如: 03" maxlength="2">
                 </div>
                 <div class="column-inputs">
                     <div class="input-group">
@@ -85,7 +93,7 @@
         </main>
 
         <footer id="statusMessage" class="status-message">
-            請輸入民國年月並上傳檔案
+            請選擇縣市、輸入月份並上傳檔案
         </footer>
     </div>
 
