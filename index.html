@@ -25,8 +25,16 @@
         <main>
             <section class="config-section">
                 <div class="input-group">
-                    <label for="rocDate">工作表月份 (民國年月)</label>
-                    <input type="text" id="rocDate" placeholder="例如: 11403" maxlength="5">
+                    <label for="citySelect">縣市</label>
+                    <select id="citySelect">
+                        <option value="" disabled selected>請選擇縣市</option>
+                        <option value="台北">台北</option>
+                        <option value="新北">新北</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="rocDate">月份</label>
+                    <input type="text" id="rocDate" placeholder="例如: 03" maxlength="2">
                 </div>
                 <div class="column-inputs">
                     <div class="input-group">
@@ -84,7 +92,7 @@
         </main>
 
         <footer id="statusMessage" class="status-message">
-            請輸入民國年月並上傳檔案
+            請選擇縣市、輸入月份並上傳檔案
         </footer>
     </div>
 

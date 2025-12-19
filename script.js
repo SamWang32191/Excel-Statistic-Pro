@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
+    const citySelect = document.getElementById('citySelect');
     const rocDateInput = document.getElementById('rocDate');
     const genderColInput = document.getElementById('genderCol');
     const ageColInput = document.getElementById('ageCol');
@@ -96,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.upload-content').classList.remove('hidden');
         previewSection.classList.add('hidden');
         uploadBtn.disabled = true;
-        showStatus('請輸入設定並上傳檔案', '');
+        showStatus('請選擇縣市、輸入月份並上傳檔案', '');
     }
 
     // --- Statistics Logic ---
@@ -168,24 +169,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Validation Logic ---
     function checkReady() {
-        const hasDate = rocDateInput.value.length >= 5;
+        const hasCity = citySelect.value !== '';
+        const hasDate = rocDateInput.value.length >= 2;
         const hasGenderCol = genderColInput.value.trim().length > 0;
         const hasAgeCol = ageColInput.value.trim().length > 0;
         const hasFile = !!currentFile;
-        uploadBtn.disabled = !(hasDate && hasGenderCol && hasAgeCol && hasFile);
+        uploadBtn.disabled = !(hasCity && hasDate && hasGenderCol && hasAgeCol && hasFile);
     }
 
-    [rocDateInput, genderColInput, ageColInput].forEach(el => {
-        el.oninput = () => {
+    [citySelect, rocDateInput, genderColInput, ageColInput].forEach(el => {
+        el.addEventListener('input', () => {
             checkReady();
             if (currentFile) triggerProcess();
-        };
+        });
+        el.addEventListener('change', () => {
+            checkReady();
+            if (currentFile) triggerProcess();
+        });
     });
 
     // --- Upload to GAS ---
     uploadBtn.onclick = async () => {
+        // 防禦性檢核：再次確認必要欄位
+        if (!citySelect.value) {
+            showStatus('請選擇縣市', 'error');
+            return;
+        }
+        if (rocDateInput.value.length < 2) {
+            showStatus('請輸入月份', 'error');
+            return;
+        }
+
         const stats = JSON.parse(uploadBtn.dataset.stats);
-        const sheetName = rocDateInput.value;
+        // 組合 sheetName 為「縣市月份」格式
+        const sheetName = citySelect.value + rocDateInput.value;
 
         if (!GAS_URL) {
             showStatus('錯誤: 未設定 GAS URL 環境變數', 'error');
