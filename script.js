@@ -18,9 +18,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const cmsStatsDiv = document.getElementById('cmsStats');
 
     // Get GAS URL from environment variable (Vite prefix)
+    const caseListCols = document.getElementById('caseListCols');
+    const serviceRegisterCols = document.getElementById('serviceRegisterCols');
+    const districtColInput = document.getElementById('districtCol');
+    const categoryColInput = document.getElementById('categoryCol');
+    const subsidyColInput = document.getElementById('subsidyCol');
+    const modeButtons = document.querySelectorAll('.btn-switch');
+    const caseStatsGrid = document.getElementById('caseStatsGrid');
+    const serviceStatsGrid = document.getElementById('serviceStatsGrid');
+    const districtStatsDiv = document.getElementById('districtStats');
+    const categoryStatsDiv = document.getElementById('categoryStats');
+    const subsidyStatsDiv = document.getElementById('subsidyStats');
+
+    // Get GAS URL from environment variable (Vite prefix)
     const GAS_URL = import.meta.env.VITE_GAS_URL;
 
     let currentFile = null;
+    let currentMode = 'case'; // 'case' or 'service'
+
+    // --- Mode Switching ---
+    modeButtons.forEach(btn => {
+        btn.onclick = () => {
+            if (btn.dataset.mode === currentMode) return;
+            
+            // Update UI State
+            modeButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMode = btn.dataset.mode;
+
+            // Toggle Input Visibility
+            caseListCols.classList.toggle('hidden', currentMode !== 'case');
+            serviceRegisterCols.classList.toggle('hidden', currentMode !== 'service');
+
+            // Reset File and Preview
+            resetUpload();
+        };
+    });
 
     // --- Utility: Column Letter to Index ---
     function colLetterToIndex(letter) {
@@ -106,38 +139,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Statistics Logic ---
     function processAndPreview(rows, fileName) {
+        if (currentMode === 'case') {
+            processCaseList(rows, fileName);
+        } else {
+            processServiceRegister(rows, fileName);
+        }
+    }
+
+    function processCaseList(rows, fileName) {
         const genderColIdx = colLetterToIndex(genderColInput.value || 'G');
         const ageColIdx = colLetterToIndex(ageColInput.value || 'F');
         const livingColIdx = colLetterToIndex(livingColInput.value || 'O');
         const cmsColIdx = colLetterToIndex(cmsColInput.value || 'J');
 
         const stats = {
-            '男': 0,
-            '女': 0,
-            '<= 49': 0,
-            '50 >= && <= 64': 0,
-            '65 >= && <= 74': 0,
-            '75 >= && <= 84': 0,
-            '85 >=': 0
+            '男': 0, '女': 0,
+            '<= 49': 0, '50 >= && <= 64': 0, '65 >= && <= 74': 0, '75 >= && <= 84': 0, '85 >=': 0
         };
-
-        // 居住狀況統計（動態收集所有不同的值）
         const livingStats = {};
-        // CMS 等級統計
         const cmsStats = {};
 
-        // Skip header row (index 0)
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
-            
-            // Gender
             if (genderColIdx !== -1 && row[genderColIdx] !== undefined) {
                 const gender = row[genderColIdx].toString().trim();
                 if (gender === '男') stats['男']++;
                 else if (gender === '女') stats['女']++;
             }
-
-            // Age
             if (ageColIdx !== -1 && row[ageColIdx] !== undefined) {
                 const age = parseInt(row[ageColIdx]);
                 if (!isNaN(age)) {
@@ -148,40 +176,65 @@ document.addEventListener('DOMContentLoaded', () => {
                     else if (age >= 85) stats['85 >=']++;
                 }
             }
-
-            // Living Status (居住狀況)
             if (livingColIdx !== -1 && row[livingColIdx] !== undefined) {
                 let living = row[livingColIdx].toString().trim();
                 if (living) {
-                    // 將「其他類型居住狀況」合併為「其他」
-                    if (living === '其他類型居住狀況') {
-                        living = '其他';
-                    }
+                    if (living === '其他類型居住狀況') living = '其他';
                     livingStats[living] = (livingStats[living] || 0) + 1;
                 }
             }
-
-            // CMS Level (CMS等級)
             if (cmsColIdx !== -1 && row[cmsColIdx] !== undefined) {
                 const cms = row[cmsColIdx].toString().trim();
-                if (cms) {
-                    cmsStats[cms] = (cmsStats[cms] || 0) + 1;
-                }
+                if (cms) cmsStats[cms] = (cmsStats[cms] || 0) + 1;
             }
         }
 
-        renderStats(stats, livingStats, cmsStats);
-        
+        renderCaseStats(stats, livingStats, cmsStats);
+        finalizePreview(fileName);
+    }
+
+    function processServiceRegister(rows, fileName) {
+        const districtColIdx = colLetterToIndex(districtColInput.value || 'U');
+        const categoryColIdx = colLetterToIndex(categoryColInput.value || 'G');
+        const subsidyColIdx = colLetterToIndex(subsidyColInput.value || 'O');
+
+        const districtStats = {};
+        const categoryStats = {};
+        const subsidyStats = {};
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (districtColIdx !== -1 && row[districtColIdx] !== undefined) {
+                const val = row[districtColIdx].toString().trim();
+                if (val) districtStats[val] = (districtStats[val] || 0) + 1;
+            }
+            if (categoryColIdx !== -1 && row[categoryColIdx] !== undefined) {
+                const val = row[categoryColIdx].toString().trim();
+                if (val) categoryStats[val] = (categoryStats[val] || 0) + 1;
+            }
+            if (subsidyColIdx !== -1 && row[subsidyColIdx] !== undefined) {
+                const val = row[subsidyColIdx].toString().trim();
+                if (val) subsidyStats[val] = (subsidyStats[val] || 0) + 1;
+            }
+        }
+
+        renderServiceStats(districtStats, categoryStats, subsidyStats);
+        finalizePreview(fileName);
+    }
+
+    function finalizePreview(fileName) {
         fileInfo.classList.remove('hidden');
         fileInfo.querySelector('.file-name').textContent = fileName;
         document.querySelector('.upload-content').classList.add('hidden');
         previewSection.classList.remove('hidden');
-        
         showStatus('檔案已就緒，請確認統計結果', 'success');
         checkReady();
     }
 
-    function renderStats(stats, livingStats, cmsStats) {
+    function renderCaseStats(stats, livingStats, cmsStats) {
+        caseStatsGrid.classList.remove('hidden');
+        serviceStatsGrid.classList.add('hidden');
+
         genderStatsDiv.innerHTML = `
             <div class="stat-item"><span>男</span> <span class="stat-value">${stats['男']}</span></div>
             <div class="stat-item"><span>女</span> <span class="stat-value">${stats['女']}</span></div>
@@ -195,67 +248,87 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="stat-item"><span>>= 85</span> <span class="stat-value">${stats['85 >=']}</span></div>
         `;
 
-        // 渲染居住狀況統計（依指定順序）
         const livingOrder = ['獨居', '獨居(兩老)', '與家人或其他人同住', '與朋友同住', '其他'];
-        const livingHtml = livingOrder
+        livingStatsDiv.innerHTML = livingOrder
             .filter(label => livingStats[label] !== undefined)
             .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${livingStats[label]}</span></div>`)
-            .join('');
-        livingStatsDiv.innerHTML = livingHtml || '<div class="stat-item"><span>無資料</span></div>';
+            .join('') || '<div class="stat-item"><span>無資料</span></div>';
 
-        // 渲染 CMS 等級統計（依 1-8 順序）
         const cmsOrder = ['1', '2', '3', '4', '5', '6', '7', '8'];
-        // 找出不在預定義順序中的其他等級
-        const otherCms = Object.keys(cmsStats).filter(level => cmsOrder.indexOf(level) === -1).sort();
+        const otherCms = Object.keys(cmsStats).filter(level => !cmsOrder.includes(level)).sort();
         const combinedCmsOrder = cmsOrder.concat(otherCms);
-        
-        const cmsHtml = combinedCmsOrder
+        cmsStatsDiv.innerHTML = combinedCmsOrder
             .filter(label => cmsStats[label] !== undefined)
             .map(label => `<div class="stat-item"><span>${label} 級</span> <span class="stat-value">${cmsStats[label]}</span></div>`)
-            .join('');
-        cmsStatsDiv.innerHTML = cmsHtml || '<div class="stat-item"><span>無資料</span></div>';
+            .join('') || '<div class="stat-item"><span>無資料</span></div>';
 
-        // 建構輸出用的二維陣列（Google Sheet 格式）
-        const outputRows = buildOutputRows(stats, livingStats, cmsStats, livingOrder, combinedCmsOrder);
+        const outputRows = buildCaseOutputRows(stats, livingStats, cmsStats, livingOrder, combinedCmsOrder);
         uploadBtn.dataset.outputRows = JSON.stringify(outputRows);
     }
 
-    // 建構 Google Sheet 輸出格式的二維陣列
-    function buildOutputRows(stats, livingStats, cmsStats, livingOrder, cmsOrder) {
-        const rows = [];
+    function renderServiceStats(districtStats, categoryStats, subsidyStats) {
+        caseStatsGrid.classList.add('hidden');
+        serviceStatsGrid.classList.remove('hidden');
+
+        // Sorting Administrative Districts
+        const orderNT = ['三重區', '蘆洲區', '五股區', '板橋區', '土城區', '新莊區', '中和區', '永和區', '樹林區', '泰山區', '新店區'];
+        const orderTP = ['松山區', '信義區', '大安區', '中山區', '中正區', '大同區', '萬華區', '文山區', '南港區', '內湖區', '士林區', '北投區'];
+        const baseOrder = citySelect.value === '台北' ? orderTP : orderNT;
         
-        // 性別統計
-        rows.push(['【性別統計】', '']);
-        rows.push(['男', stats['男'] || 0]);
-        rows.push(['女', stats['女'] || 0]);
-        rows.push(['', '']);
-        
-        // 年齡分佈
-        rows.push(['【年齡分佈】', '']);
-        rows.push(['<= 49', stats['<= 49'] || 0]);
-        rows.push(['50 >= && <= 64', stats['50 >= && <= 64'] || 0]);
-        rows.push(['65 >= && <= 74', stats['65 >= && <= 74'] || 0]);
-        rows.push(['75 >= && <= 84', stats['75 >= && <= 84'] || 0]);
-        rows.push(['85 >=', stats['85 >='] || 0]);
-        rows.push(['', '']);
-        
-        // 居住狀況
+        const sortedDistricts = Object.keys(districtStats).sort((a, b) => {
+            const idxA = baseOrder.indexOf(a);
+            const idxB = baseOrder.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.localeCompare(b, 'zh-hant');
+        });
+
+        districtStatsDiv.innerHTML = sortedDistricts
+            .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${districtStats[label]}</span></div>`)
+            .join('') || '<div class="stat-item"><span>無資料</span></div>';
+
+        // Sorting Categories
+        const sortedCategories = Object.keys(categoryStats).sort((a, b) => a.localeCompare(b, 'zh-hant'));
+        categoryStatsDiv.innerHTML = sortedCategories
+            .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${categoryStats[label]}</span></div>`)
+            .join('') || '<div class="stat-item"><span>無資料</span></div>';
+
+        // Sorting Subsidies
+        const subsidyOrder = ['100%', '95%', '84%'];
+        const sortedSubsidies = Object.keys(subsidyStats).sort((a, b) => {
+            const idxA = subsidyOrder.indexOf(a);
+            const idxB = subsidyOrder.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.localeCompare(b);
+        });
+        subsidyStatsDiv.innerHTML = sortedSubsidies
+            .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${subsidyStats[label]}</span></div>`)
+            .join('') || '<div class="stat-item"><span>無資料</span></div>';
+
+        const outputRows = buildServiceOutputRows(districtStats, sortedDistricts, categoryStats, sortedCategories, subsidyStats, sortedSubsidies);
+        uploadBtn.dataset.outputRows = JSON.stringify(outputRows);
+    }
+
+    function buildCaseOutputRows(stats, livingStats, cmsStats, livingOrder, cmsOrder) {
+        const rows = [['【性別統計】', ''], ['男', stats['男'] || 0], ['女', stats['女'] || 0], ['', '']];
+        rows.push(['【年齡分佈】', ''], ['<= 49', stats['<= 49'] || 0], ['50 >= && <= 64', stats['50 >= && <= 64'] || 0], ['65 >= && <= 74', stats['65 >= && <= 74'] || 0], ['75 >= && <= 84', stats['75 >= && <= 84'] || 0], ['85 >=', stats['85 >='] || 0], ['', '']);
         rows.push(['【居住狀況】', '']);
-        livingOrder.forEach(label => {
-            if (livingStats[label] !== undefined) {
-                rows.push([label, livingStats[label]]);
-            }
-        });
-        rows.push(['', '']);
-        
-        // CMS 等級
-        rows.push(['【CMS 等級】', '']);
-        cmsOrder.forEach(label => {
-            if (cmsStats[label] !== undefined) {
-                rows.push([label, cmsStats[label]]);
-            }
-        });
-        
+        livingOrder.forEach(label => { if (livingStats[label] !== undefined) rows.push([label, livingStats[label]]); });
+        rows.push(['', ''], ['【CMS 等級】', '']);
+        cmsOrder.forEach(label => { if (cmsStats[label] !== undefined) rows.push([label, cmsStats[label]]); });
+        return rows;
+    }
+
+    function buildServiceOutputRows(districtStats, sortedDistricts, categoryStats, sortedCategories, subsidyStats, sortedSubsidies) {
+        const rows = [['【行政區統計】', '']];
+        sortedDistricts.forEach(label => rows.push([label, districtStats[label]]));
+        rows.push(['', ''], ['【服務項目類別】', '']);
+        sortedCategories.forEach(label => rows.push([label, categoryStats[label]]));
+        rows.push(['', ''], ['【補助比率】', '']);
+        sortedSubsidies.forEach(label => rows.push([label, subsidyStats[label]]));
         return rows;
     }
 
@@ -263,15 +336,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkReady() {
         const hasCity = citySelect.value !== '';
         const hasDate = rocDateInput.value.length >= 2;
-        const hasGenderCol = genderColInput.value.trim().length > 0;
-        const hasAgeCol = ageColInput.value.trim().length > 0;
-        const hasLivingCol = livingColInput.value.trim().length > 0;
-        const hasCmsCol = cmsColInput.value.trim().length > 0;
         const hasFile = !!currentFile;
-        uploadBtn.disabled = !(hasCity && hasDate && hasGenderCol && hasAgeCol && hasLivingCol && hasCmsCol && hasFile);
+
+        let hasCols = false;
+        if (currentMode === 'case') {
+            hasCols = genderColInput.value.trim() && ageColInput.value.trim() && livingColInput.value.trim() && cmsColInput.value.trim();
+        } else {
+            hasCols = districtColInput.value.trim() && categoryColInput.value.trim() && subsidyColInput.value.trim();
+        }
+
+        uploadBtn.disabled = !(hasCity && hasDate && hasCols && hasFile);
     }
 
-    [citySelect, rocDateInput, genderColInput, ageColInput, livingColInput, cmsColInput].forEach(el => {
+    [citySelect, rocDateInput, genderColInput, ageColInput, livingColInput, cmsColInput, districtColInput, categoryColInput, subsidyColInput].forEach(el => {
         el.addEventListener('input', () => {
             checkReady();
             if (currentFile) triggerProcess();
