@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const combinedCmsOrder = cmsOrder.concat(otherCms);
         cmsStatsDiv.innerHTML = combinedCmsOrder
             .filter(label => cmsStats[label] !== undefined)
-            .map(label => `<div class="stat-item"><span>${label} 級</span> <span class="stat-value">${cmsStats[label]}</span></div>`)
+            .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${cmsStats[label]}</span></div>`)
             .join('') || '<div class="stat-item"><span>無資料</span></div>';
 
         const outputRows = buildCaseOutputRows(stats, livingStats, cmsStats, livingOrder, combinedCmsOrder);
