@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rocDateInput = document.getElementById('rocDate');
     const genderColInput = document.getElementById('genderCol');
     const ageColInput = document.getElementById('ageCol');
+    const livingColInput = document.getElementById('livingCol');
     const previewSection = document.getElementById('previewSection');
     const uploadBtn = document.getElementById('uploadBtn');
     const statusMessage = document.getElementById('statusMessage');
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeFileBtn = document.getElementById('removeFile');
     const genderStatsDiv = document.getElementById('genderStats');
     const ageStatsDiv = document.getElementById('ageStats');
+    const livingStatsDiv = document.getElementById('livingStats');
 
     // Get GAS URL from environment variable (Vite prefix)
     const GAS_URL = import.meta.env.VITE_GAS_URL;
@@ -104,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function processAndPreview(rows, fileName) {
         const genderColIdx = colLetterToIndex(genderColInput.value || 'G');
         const ageColIdx = colLetterToIndex(ageColInput.value || 'F');
+        const livingColIdx = colLetterToIndex(livingColInput.value || 'O');
 
         const stats = {
             '男': 0,
@@ -114,6 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
             '75 >= && <= 84': 0,
             '85 >=': 0
         };
+
+        // 居住狀況統計（動態收集所有不同的值）
+        const livingStats = {};
 
         // Skip header row (index 0)
         for (let i = 1; i < rows.length; i++) {
@@ -137,9 +143,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     else if (age >= 85) stats['85 >=']++;
                 }
             }
+
+            // Living Status (居住狀況)
+            if (livingColIdx !== -1 && row[livingColIdx] !== undefined) {
+                let living = row[livingColIdx].toString().trim();
+                if (living) {
+                    // 將「其他類型居住狀況」合併為「其他」
+                    if (living === '其他類型居住狀況') {
+                        living = '其他';
+                    }
+                    livingStats[living] = (livingStats[living] || 0) + 1;
+                }
+            }
         }
 
-        renderStats(stats);
+        renderStats(stats, livingStats);
         
         fileInfo.classList.remove('hidden');
         fileInfo.querySelector('.file-name').textContent = fileName;
@@ -150,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkReady();
     }
 
-    function renderStats(stats) {
+    function renderStats(stats, livingStats) {
         genderStatsDiv.innerHTML = `
             <div class="stat-item"><span>男</span> <span class="stat-value">${stats['男']}</span></div>
             <div class="stat-item"><span>女</span> <span class="stat-value">${stats['女']}</span></div>
@@ -164,7 +182,17 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="stat-item"><span>>= 85</span> <span class="stat-value">${stats['85 >=']}</span></div>
         `;
 
+        // 渲染居住狀況統計（依指定順序）
+        const livingOrder = ['獨居', '獨居(兩老)', '與家人或其他人同住', '與朋友同住', '其他'];
+        const livingHtml = livingOrder
+            .filter(label => livingStats[label] !== undefined)
+            .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${livingStats[label]}</span></div>`)
+            .join('');
+        livingStatsDiv.innerHTML = livingHtml || '<div class="stat-item"><span>無資料</span></div>';
+
+        // 合併所有統計資料
         uploadBtn.dataset.stats = JSON.stringify(stats);
+        uploadBtn.dataset.livingStats = JSON.stringify(livingStats);
     }
 
     // --- Validation Logic ---
@@ -173,11 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasDate = rocDateInput.value.length >= 2;
         const hasGenderCol = genderColInput.value.trim().length > 0;
         const hasAgeCol = ageColInput.value.trim().length > 0;
+        const hasLivingCol = livingColInput.value.trim().length > 0;
         const hasFile = !!currentFile;
-        uploadBtn.disabled = !(hasCity && hasDate && hasGenderCol && hasAgeCol && hasFile);
+        uploadBtn.disabled = !(hasCity && hasDate && hasGenderCol && hasAgeCol && hasLivingCol && hasFile);
     }
 
-    [citySelect, rocDateInput, genderColInput, ageColInput].forEach(el => {
+    [citySelect, rocDateInput, genderColInput, ageColInput, livingColInput].forEach(el => {
         el.addEventListener('input', () => {
             checkReady();
             if (currentFile) triggerProcess();
@@ -201,6 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const stats = JSON.parse(uploadBtn.dataset.stats);
+        const livingStats = JSON.parse(uploadBtn.dataset.livingStats || '{}');
         // 組合 sheetName 為「縣市月份」格式
         const sheetName = citySelect.value + rocDateInput.value;
 
@@ -212,13 +242,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(true);
         showStatus('正在同步至 Google Sheet...', 'success');
 
+        // 合併所有統計資料到 data 物件
+        const combinedData = { ...stats, ...livingStats };
+
         try {
             await fetch(GAS_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 cache: 'no-cache',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sheetName, data: stats })
+                body: JSON.stringify({ sheetName, data: combinedData })
             });
 
             showStatus('同步完成！請檢查您的 Google Sheet', 'success');
