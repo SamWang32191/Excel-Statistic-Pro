@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel 資料統計工具</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-DWC2OTdg.js"></script>
+  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-D0nhhZ7A.css">
+</head>
+
+<body>
+    <div class="background-dots"></div>
+    <div class="container">
+        <header>
+            <h1>Excel <span class="accent">Statistic</span> Pro</h1>
+            <p>快速統計個案名單並同步至雲端表格</p>
+        </header>
+
+        <main>
+            <section class="config-section">
+                <div class="input-group">
+                    <label for="rocDate">工作表月份 (民國年月)</label>
+                    <input type="text" id="rocDate" placeholder="例如: 11403" maxlength="5">
+                </div>
+                <div class="column-inputs">
+                    <div class="input-group">
+                        <label for="genderCol">性別列 (例如: G)</label>
+                        <input type="text" id="genderCol" placeholder="G" maxlength="2">
+                    </div>
+                    <div class="input-group">
+                        <label for="ageCol">年齡列 (例如: F)</label>
+                        <input type="text" id="ageCol" placeholder="F" maxlength="2">
+                    </div>
+                </div>
+            </section>
+
+            <section class="upload-section" id="dropZone">
+                <input type="file" id="fileInput" accept=".xlsx, .xls" hidden>
+                <div class="upload-content">
+                    <div class="icon-orb">
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                        </svg>
+                    </div>
+                    <h3>拖放檔案或 <span class="browse">點擊上傳</span></h3>
+                    <p>支援 .xlsx, .xls 格式</p>
+                </div>
+                <div id="fileInfo" class="file-info hidden">
+                    <span class="file-name"></span>
+                    <button id="removeFile" class="btn-icon">×</button>
+                </div>
+            </section>
+
+            <section id="previewSection" class="preview-section hidden">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">性別統計</div>
+                        <div class="stat-values" id="genderStats">
+                            <!-- JS Inject -->
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">年齡分佈</div>
+                        <div class="stat-values" id="ageStats">
+                            <!-- JS Inject -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-bar">
+                    <button id="uploadBtn" class="btn-primary" disabled>
+                        <span class="btn-text">確認並同步至 Google Sheet</span>
+                        <div class="loader hidden"></div>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer id="statusMessage" class="status-message">
+            請輸入民國年月並上傳檔案
+        </footer>
+    </div>
+
+</body>
+
+</html>
