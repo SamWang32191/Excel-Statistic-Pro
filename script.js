@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get GAS URL from environment variable (Vite prefix)
     const caseListCols = document.getElementById('caseListCols');
     const serviceRegisterCols = document.getElementById('serviceRegisterCols');
+    const headerRowIdxInput = document.getElementById('headerRowIdx');
     const districtColInput = document.getElementById('districtCol');
     const categoryColInput = document.getElementById('categoryCol');
     const subsidyColInput = document.getElementById('subsidyCol');
@@ -194,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processServiceRegister(rows, fileName) {
+        const headerRowIdx = parseInt(headerRowIdxInput.value || '5');
         const districtColIdx = colLetterToIndex(districtColInput.value || 'U');
         const categoryColIdx = colLetterToIndex(categoryColInput.value || 'G');
         const subsidyColIdx = colLetterToIndex(subsidyColInput.value || 'O');
@@ -202,7 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const categoryStats = {};
         const subsidyStats = {};
 
-        for (let i = 1; i < rows.length; i++) {
+        // 從標頭行的下一行開始 (Excel 1-based, rows is 0-based)
+        // 例如標頭是第 5 行，其索引是 4，資料從第 6 行開始 (索引 5)
+        for (let i = headerRowIdx; i < rows.length; i++) {
             const row = rows[i];
             if (districtColIdx !== -1 && row[districtColIdx] !== undefined) {
                 const val = row[districtColIdx].toString().trim();
@@ -348,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.disabled = !(hasCity && hasDate && hasCols && hasFile);
     }
 
-    [citySelect, rocDateInput, genderColInput, ageColInput, livingColInput, cmsColInput, districtColInput, categoryColInput, subsidyColInput].forEach(el => {
+    [citySelect, rocDateInput, genderColInput, ageColInput, livingColInput, cmsColInput, districtColInput, categoryColInput, subsidyColInput, headerRowIdxInput].forEach(el => {
         el.addEventListener('input', () => {
             checkReady();
             if (currentFile) triggerProcess();
