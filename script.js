@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const genderColInput = document.getElementById('genderCol');
     const ageColInput = document.getElementById('ageCol');
     const livingColInput = document.getElementById('livingCol');
+    const cmsColInput = document.getElementById('cmsCol');
     const previewSection = document.getElementById('previewSection');
     const uploadBtn = document.getElementById('uploadBtn');
     const statusMessage = document.getElementById('statusMessage');
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const genderStatsDiv = document.getElementById('genderStats');
     const ageStatsDiv = document.getElementById('ageStats');
     const livingStatsDiv = document.getElementById('livingStats');
+    const cmsStatsDiv = document.getElementById('cmsStats');
 
     // Get GAS URL from environment variable (Vite prefix)
     const GAS_URL = import.meta.env.VITE_GAS_URL;
@@ -107,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const genderColIdx = colLetterToIndex(genderColInput.value || 'G');
         const ageColIdx = colLetterToIndex(ageColInput.value || 'F');
         const livingColIdx = colLetterToIndex(livingColInput.value || 'O');
+        const cmsColIdx = colLetterToIndex(cmsColInput.value || 'J');
 
         const stats = {
             '男': 0,
@@ -120,6 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 居住狀況統計（動態收集所有不同的值）
         const livingStats = {};
+        // CMS 等級統計
+        const cmsStats = {};
 
         // Skip header row (index 0)
         for (let i = 1; i < rows.length; i++) {
@@ -155,9 +160,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     livingStats[living] = (livingStats[living] || 0) + 1;
                 }
             }
+
+            // CMS Level (CMS等級)
+            if (cmsColIdx !== -1 && row[cmsColIdx] !== undefined) {
+                const cms = row[cmsColIdx].toString().trim();
+                if (cms) {
+                    cmsStats[cms] = (cmsStats[cms] || 0) + 1;
+                }
+            }
         }
 
-        renderStats(stats, livingStats);
+        renderStats(stats, livingStats, cmsStats);
         
         fileInfo.classList.remove('hidden');
         fileInfo.querySelector('.file-name').textContent = fileName;
@@ -168,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkReady();
     }
 
-    function renderStats(stats, livingStats) {
+    function renderStats(stats, livingStats, cmsStats) {
         genderStatsDiv.innerHTML = `
             <div class="stat-item"><span>男</span> <span class="stat-value">${stats['男']}</span></div>
             <div class="stat-item"><span>女</span> <span class="stat-value">${stats['女']}</span></div>
@@ -190,9 +203,60 @@ document.addEventListener('DOMContentLoaded', () => {
             .join('');
         livingStatsDiv.innerHTML = livingHtml || '<div class="stat-item"><span>無資料</span></div>';
 
-        // 合併所有統計資料
-        uploadBtn.dataset.stats = JSON.stringify(stats);
-        uploadBtn.dataset.livingStats = JSON.stringify(livingStats);
+        // 渲染 CMS 等級統計（依 1-8 順序）
+        const cmsOrder = ['1', '2', '3', '4', '5', '6', '7', '8'];
+        // 找出不在預定義順序中的其他等級
+        const otherCms = Object.keys(cmsStats).filter(level => cmsOrder.indexOf(level) === -1).sort();
+        const combinedCmsOrder = cmsOrder.concat(otherCms);
+        
+        const cmsHtml = combinedCmsOrder
+            .filter(label => cmsStats[label] !== undefined)
+            .map(label => `<div class="stat-item"><span>${label} 級</span> <span class="stat-value">${cmsStats[label]}</span></div>`)
+            .join('');
+        cmsStatsDiv.innerHTML = cmsHtml || '<div class="stat-item"><span>無資料</span></div>';
+
+        // 建構輸出用的二維陣列（Google Sheet 格式）
+        const outputRows = buildOutputRows(stats, livingStats, cmsStats, livingOrder, combinedCmsOrder);
+        uploadBtn.dataset.outputRows = JSON.stringify(outputRows);
+    }
+
+    // 建構 Google Sheet 輸出格式的二維陣列
+    function buildOutputRows(stats, livingStats, cmsStats, livingOrder, cmsOrder) {
+        const rows = [];
+        
+        // 性別統計
+        rows.push(['【性別統計】', '']);
+        rows.push(['男', stats['男'] || 0]);
+        rows.push(['女', stats['女'] || 0]);
+        rows.push(['', '']);
+        
+        // 年齡分佈
+        rows.push(['【年齡分佈】', '']);
+        rows.push(['<= 49', stats['<= 49'] || 0]);
+        rows.push(['50 >= && <= 64', stats['50 >= && <= 64'] || 0]);
+        rows.push(['65 >= && <= 74', stats['65 >= && <= 74'] || 0]);
+        rows.push(['75 >= && <= 84', stats['75 >= && <= 84'] || 0]);
+        rows.push(['85 >=', stats['85 >='] || 0]);
+        rows.push(['', '']);
+        
+        // 居住狀況
+        rows.push(['【居住狀況】', '']);
+        livingOrder.forEach(label => {
+            if (livingStats[label] !== undefined) {
+                rows.push([label, livingStats[label]]);
+            }
+        });
+        rows.push(['', '']);
+        
+        // CMS 等級
+        rows.push(['【CMS 等級】', '']);
+        cmsOrder.forEach(label => {
+            if (cmsStats[label] !== undefined) {
+                rows.push([label + ' 級', cmsStats[label]]);
+            }
+        });
+        
+        return rows;
     }
 
     // --- Validation Logic ---
@@ -202,11 +266,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasGenderCol = genderColInput.value.trim().length > 0;
         const hasAgeCol = ageColInput.value.trim().length > 0;
         const hasLivingCol = livingColInput.value.trim().length > 0;
+        const hasCmsCol = cmsColInput.value.trim().length > 0;
         const hasFile = !!currentFile;
-        uploadBtn.disabled = !(hasCity && hasDate && hasGenderCol && hasAgeCol && hasLivingCol && hasFile);
+        uploadBtn.disabled = !(hasCity && hasDate && hasGenderCol && hasAgeCol && hasLivingCol && hasCmsCol && hasFile);
     }
 
-    [citySelect, rocDateInput, genderColInput, ageColInput, livingColInput].forEach(el => {
+    [citySelect, rocDateInput, genderColInput, ageColInput, livingColInput, cmsColInput].forEach(el => {
         el.addEventListener('input', () => {
             checkReady();
             if (currentFile) triggerProcess();
@@ -229,8 +294,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const stats = JSON.parse(uploadBtn.dataset.stats);
-        const livingStats = JSON.parse(uploadBtn.dataset.livingStats || '{}');
+        // 取得已建構好的輸出資料
+        const outputRows = JSON.parse(uploadBtn.dataset.outputRows || '[]');
         // 組合 sheetName 為「縣市月份」格式
         const sheetName = citySelect.value + rocDateInput.value;
 
@@ -242,16 +307,14 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(true);
         showStatus('正在同步至 Google Sheet...', 'success');
 
-        // 合併所有統計資料到 data 物件
-        const combinedData = { ...stats, ...livingStats };
-
         try {
+            // 直接傳送已格式化的二維陣列，GAS 只需寫入即可
             await fetch(GAS_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 cache: 'no-cache',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sheetName, data: combinedData })
+                body: JSON.stringify({ sheetName, rows: outputRows })
             });
 
             showStatus('同步完成！請檢查您的 Google Sheet', 'success');
