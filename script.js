@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rows.push(['【CMS 等級】', '']);
         cmsOrder.forEach(label => {
             if (cmsStats[label] !== undefined) {
-                rows.push([label + ' 級', cmsStats[label]]);
+                rows.push([label, cmsStats[label]]);
             }
         });
         
