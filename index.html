@@ -13,8 +13,8 @@
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-DEhmhH5x.js"></script>
-  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-DDWPu8Mi.css">
+  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-iqpw3dRU.js"></script>
+  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index--NL8btHH.css">
 </head>
 
 <body>
@@ -37,10 +37,16 @@
                 </div>
                 <div class="input-group">
                     <label for="rocDate">月份</label>
-                    <input type="text" id="rocDate" placeholder="例如: 03，只能輸入數字" maxlength="2" pattern="[0-9]*"
-                        inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <input type="text" id="rocDate" placeholder="例如: 03，只能輸入數字/英文" maxlength="2" pattern="[0-9]*"
+                        inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9A-Za-z]/g, '')">
                 </div>
-                <div class="column-inputs">
+
+                <div class="mode-switch">
+                    <button type="button" id="modeCase" class="btn-switch active" data-mode="case">個案名單</button>
+                    <button type="button" id="modeService" class="btn-switch" data-mode="service">服務清冊</button>
+                </div>
+
+                <div id="caseListCols" class="column-inputs">
                     <div class="input-group">
                         <label for="genderCol">性別列 (例如: G)</label>
                         <input type="text" id="genderCol" value="G" placeholder="G，只能輸入英文" maxlength="2"
@@ -66,6 +72,27 @@
                             oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                     </div>
                 </div>
+
+                <div id="serviceRegisterCols" class="column-inputs hidden">
+                    <div class="input-group">
+                        <label for="districtCol">行政區列 (例如: U)</label>
+                        <input type="text" id="districtCol" value="U" placeholder="U，只能輸入英文" maxlength="2"
+                            pattern="[A-Za-z]*"
+                            oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
+                    </div>
+                    <div class="input-group">
+                        <label for="categoryCol">服務類別列 (例如: G)</label>
+                        <input type="text" id="categoryCol" value="G" placeholder="G，只能輸入英文" maxlength="2"
+                            pattern="[A-Za-z]*"
+                            oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
+                    </div>
+                    <div class="input-group">
+                        <label for="subsidyCol">補助比率列 (例如: O)</label>
+                        <input type="text" id="subsidyCol" value="O" placeholder="O，只能輸入英文" maxlength="2"
+                            pattern="[A-Za-z]*"
+                            oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
+                    </div>
+                </div>
             </section>
 
             <section class="upload-section" id="dropZone">
@@ -87,7 +114,7 @@
             </section>
 
             <section id="previewSection" class="preview-section hidden">
-                <div class="stats-grid">
+                <div class="stats-grid" id="caseStatsGrid">
                     <div class="stat-card">
                         <div class="stat-label">性別統計</div>
                         <div class="stat-values" id="genderStats">
@@ -109,6 +136,27 @@
                     <div class="stat-card">
                         <div class="stat-label">CMS 等級</div>
                         <div class="stat-values" id="cmsStats">
+                            <!-- JS Inject -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid hidden" id="serviceStatsGrid">
+                    <div class="stat-card">
+                        <div class="stat-label">行政區統計</div>
+                        <div class="stat-values" id="districtStats">
+                            <!-- JS Inject -->
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">服務項目類別</div>
+                        <div class="stat-values" id="categoryStats">
+                            <!-- JS Inject -->
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">補助比率</div>
+                        <div class="stat-values" id="subsidyStats">
                             <!-- JS Inject -->
                         </div>
                     </div>
