@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
     <title>Excel 資料統計工具</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,8 +13,8 @@
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-Yy9zGTgr.js"></script>
-  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-DeIB2oCX.css">
+  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-DMMzmX0b.js"></script>
+  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-DDWPu8Mi.css">
 </head>
 
 <body>
@@ -35,20 +37,33 @@
                 </div>
                 <div class="input-group">
                     <label for="rocDate">月份</label>
-                    <input type="text" id="rocDate" placeholder="例如: 03" maxlength="2">
+                    <input type="text" id="rocDate" placeholder="例如: 03，只能輸入數字" maxlength="2" pattern="[0-9]*"
+                        inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 </div>
                 <div class="column-inputs">
                     <div class="input-group">
                         <label for="genderCol">性別列 (例如: G)</label>
-                        <input type="text" id="genderCol" placeholder="G" maxlength="2">
+                        <input type="text" id="genderCol" value="G" placeholder="G，只能輸入英文" maxlength="2"
+                            pattern="[A-Za-z]*"
+                            oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                     </div>
                     <div class="input-group">
                         <label for="ageCol">年齡列 (例如: F)</label>
-                        <input type="text" id="ageCol" placeholder="F" maxlength="2">
+                        <input type="text" id="ageCol" value="F" placeholder="F，只能輸入英文" maxlength="2"
+                            pattern="[A-Za-z]*"
+                            oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                     </div>
                     <div class="input-group">
                         <label for="livingCol">居住狀況列 (例如: O)</label>
-                        <input type="text" id="livingCol" placeholder="O" maxlength="2">
+                        <input type="text" id="livingCol" value="O" placeholder="O，只能輸入英文" maxlength="2"
+                            pattern="[A-Za-z]*"
+                            oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
+                    </div>
+                    <div class="input-group">
+                        <label for="cmsCol">CMS等級列 (例如: J)</label>
+                        <input type="text" id="cmsCol" value="J" placeholder="J，只能輸入英文" maxlength="2"
+                            pattern="[A-Za-z]*"
+                            oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                     </div>
                 </div>
             </section>
@@ -88,6 +103,12 @@
                     <div class="stat-card">
                         <div class="stat-label">居住狀況</div>
                         <div class="stat-values" id="livingStats">
+                            <!-- JS Inject -->
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">CMS 等級</div>
+                        <div class="stat-values" id="cmsStats">
                             <!-- JS Inject -->
                         </div>
                     </div>
