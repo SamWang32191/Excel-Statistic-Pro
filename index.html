@@ -11,8 +11,8 @@
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-DvaEuCX4.js"></script>
-  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-Bcozb5CZ.css">
+  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-Yy9zGTgr.js"></script>
+  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-DeIB2oCX.css">
 </head>
 
 <body>
@@ -46,6 +46,10 @@
                         <label for="ageCol">年齡列 (例如: F)</label>
                         <input type="text" id="ageCol" placeholder="F" maxlength="2">
                     </div>
+                    <div class="input-group">
+                        <label for="livingCol">居住狀況列 (例如: O)</label>
+                        <input type="text" id="livingCol" placeholder="O" maxlength="2">
+                    </div>
                 </div>
             </section>
 
@@ -78,6 +82,12 @@
                     <div class="stat-card">
                         <div class="stat-label">年齡分佈</div>
                         <div class="stat-values" id="ageStats">
+                            <!-- JS Inject -->
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">居住狀況</div>
+                        <div class="stat-values" id="livingStats">
                             <!-- JS Inject -->
                         </div>
                     </div>
