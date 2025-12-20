@@ -1,5 +1,7 @@
 /**
  * 識別 Excel 工作表名稱
+ * @param {Object} workbook - Excel 活頁簿物件
+ * @returns {Object} 包含台北與新北工作表名稱的物件
  */
 export function identifyWorksheets(workbook) {
     let taipeiSheetName = null;
@@ -20,7 +22,9 @@ export function identifyWorksheets(workbook) {
 }
 
 /**
- * Excel 欄位字母轉索引 (A -> 0, B -> 1, ...)
+ * Excel 欄位字母轉索引 (例如：A -> 0, B -> 1, ...)
+ * @param {string} letter - 欄位字母
+ * @returns {number} 0 型索引，若無效則回傳 -1
  */
 export function colLetterToIndex(letter) {
     if (!letter) return -1;
@@ -32,7 +36,10 @@ export function colLetterToIndex(letter) {
     return index - 1;
 }
 
-// 通用統計初始化模板
+/**
+ * 建立通用統計初始化模板
+ * @returns {Object} 初始化的統計資料結構
+ */
 export function createEmptyStats() {
     return {
         gender: { '男': 0, '女': 0 },
@@ -44,8 +51,9 @@ export function createEmptyStats() {
 
 /**
  * 處理服務清冊統計
- * @param {Array} rows - 工作表資料列
- * @param {Object} config - 欄位配置 { headerRowIdx, district, category, subsidy }
+ * @param {Array} rows - 工作表資料列陣列
+ * @param {Object} config - 欄位配置資訊 { headerRowIdx, district, category, subsidy }
+ * @returns {Object} 包含行政區、類別及補助統計結果的物件
  */
 export function processServiceStats(rows, config) {
     const headerRowIdx = config.headerRowIdx || 5;

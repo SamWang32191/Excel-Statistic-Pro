@@ -2,6 +2,9 @@ import { colLetterToIndex } from './logic.js';
 
 /**
  * 處理新北個案統計
+ * @param {Array} rows - 工作表資料列陣列
+ * @param {Object} config - 欄位配置資訊 { gender, age, living, cms }
+ * @returns {Object} 包含性別、年齡、居住狀況及 CMS 等級統計結果的物件
  */
 export function processNewTaipeiCaseStats(rows, config) {
     const stats = {
@@ -20,15 +23,15 @@ export function processNewTaipeiCaseStats(rows, config) {
 
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
-        
-        // Gender
+
+        // 性別統計
         if (genderColIdx !== -1 && row[genderColIdx] !== undefined) {
             const gender = row[genderColIdx].toString().trim();
             if (gender === '男') stats.gender['男']++;
             else if (gender === '女') stats.gender['女']++;
         }
-        
-        // Age
+
+        // 年齡統計
         if (ageColIdx !== -1 && row[ageColIdx] !== undefined) {
             const age = parseInt(row[ageColIdx]);
             if (!isNaN(age)) {
@@ -40,7 +43,7 @@ export function processNewTaipeiCaseStats(rows, config) {
             }
         }
 
-        // Living
+        // 居住狀況統計
         if (livingColIdx !== -1 && row[livingColIdx] !== undefined) {
             let living = row[livingColIdx].toString().trim();
             if (living) {
@@ -49,7 +52,7 @@ export function processNewTaipeiCaseStats(rows, config) {
             }
         }
 
-        // CMS
+        // CMS 等級統計
         if (cmsColIdx !== -1 && row[cmsColIdx] !== undefined) {
             const cms = row[cmsColIdx].toString().trim();
             if (cms) stats.cms[cms] = (stats.cms[cms] || 0) + 1;
@@ -60,7 +63,9 @@ export function processNewTaipeiCaseStats(rows, config) {
 }
 
 /**
- * 格式化新北輸出內容 (Google Sheets)
+ * 格式化新北輸出內容 (用於寫入 Google Sheets 的格式)
+ * @param {Object} stats - 統計資料物件
+ * @returns {Array} 二維陣列，代表要寫入 Excel 的各個儲存格內容
  */
 export function formatNewTaipeiCaseOutput(stats) {
     const livingOrder = ['獨居', '獨居(兩老)', '與家人或其他人同住', '與朋友同住', '其他'];
@@ -74,12 +79,15 @@ export function formatNewTaipeiCaseOutput(stats) {
     livingOrder.forEach(label => { if (stats.living[label] !== undefined) rows.push([label, stats.living[label]]); });
     rows.push(['', ''], ['【CMS 等級】', '']);
     combinedCmsOrder.forEach(label => { if (stats.cms[label] !== undefined) rows.push([label, stats.cms[label]]); });
-    
+
     return rows;
 }
 
 /**
- * 渲染新北預覽 HTML
+ * 渲染新北預覽 HTML 元素
+ * @param {Object} stats - 統計資料物件
+ * @param {string} sheetName - 工作表名稱
+ * @returns {HTMLElement} 包含統計摘要預覽的 HTML div 元素
  */
 export function renderNewTaipeiCasePreview(stats, sheetName) {
     const livingOrder = ['獨居', '獨居(兩老)', '與家人或其他人同住', '與朋友同住', '其他'];

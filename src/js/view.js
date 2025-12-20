@@ -3,19 +3,20 @@ import { processTaipeiCaseStats, formatTaipeiCaseOutput, renderTaipeiCasePreview
 import { processNewTaipeiCaseStats, formatNewTaipeiCaseOutput, renderNewTaipeiCasePreview } from './newtaipei.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 取得 DOM 元素
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const cityButtons = document.querySelectorAll('.btn-city');
     const rocDateInput = document.getElementById('rocDate');
 
-    // Taipei Inputs
+    // 台北輸入欄位
     const tpCategoryColInput = document.getElementById('tpCategoryCol');
     const tpGenderColInput = document.getElementById('tpGenderCol');
     const tpAgeColInput = document.getElementById('tpAgeCol');
     const tpLivingColInput = document.getElementById('tpLivingCol');
     const tpCmsColInput = document.getElementById('tpCmsCol');
 
-    // New Taipei Inputs
+    // 新北輸入欄位
     const ntGenderColInput = document.getElementById('ntGenderCol');
     const ntAgeColInput = document.getElementById('ntAgeCol');
     const ntLivingColInput = document.getElementById('ntLivingCol');
@@ -37,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryColInput = document.getElementById('categoryCol');
     const subsidyColInput = document.getElementById('subsidyCol');
 
-    // Service Stats Containers
+    // 服務清冊統計容器
     const serviceStatsGrid = document.getElementById('serviceStatsGrid');
     const districtStatsDiv = document.getElementById('districtStats');
     const categoryStatsDiv = document.getElementById('categoryStats');
@@ -45,44 +46,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const modeButtons = document.querySelectorAll('.btn-switch');
 
+    /**
+     * 更新台北服務項目類別選單的顯示狀態
+     */
     const updateTpServiceCategoryVisibility = () => {
         const show = currentMode === 'service' && currentCity === '台北';
         tpServiceCategoryGroup.classList.toggle('hidden', !show);
     };
 
-    // Get GAS URL from environment variable (Vite prefix)
+    // 從環境變數取得 GAS URL (Vite 前綴)
     const GAS_URL = import.meta.env.VITE_GAS_URL;
 
     let currentFile = null;
-    let currentMode = 'case'; // 'case' or 'service'
-    let currentCity = '台北'; // default city
+    let currentMode = 'case'; // 'case' (個案) 或 'service' (服務)
+    let currentCity = '台北'; // 預設縣市
 
-    // Initial state setup
+    // 初始狀態設置
     cityInputGroup.classList.toggle('hidden', currentMode === 'case');
     updateTpServiceCategoryVisibility();
 
-    // --- Mode Switching ---
+    // --- 模式切換邏輯 (個案清單 / 服務清冊) ---
     modeButtons.forEach(btn => {
         btn.onclick = () => {
             if (btn.dataset.mode === currentMode) return;
 
-            // Update UI State
+            // 更新 UI 狀態
             modeButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentMode = btn.dataset.mode;
 
-            // Toggle Input Visibility
+            // 切換輸入欄位顯示
             caseListCols.classList.toggle('hidden', currentMode !== 'case');
             serviceRegisterCols.classList.toggle('hidden', currentMode !== 'service');
             cityInputGroup.classList.toggle('hidden', currentMode === 'case');
             updateTpServiceCategoryVisibility();
 
-            // Reset File and Preview
+            // 重置上傳檔案與預覽
             resetUpload();
         };
     });
 
-    // --- City Button Switching (Service Mode) ---
+    // --- 縣市切換邏輯 (僅限服務模式) ---
     cityButtons.forEach(btn => {
         btn.onclick = () => {
             if (btn.dataset.city === currentCity) return;
@@ -92,20 +96,20 @@ document.addEventListener('DOMContentLoaded', () => {
             currentCity = btn.dataset.city;
 
             updateTpServiceCategoryVisibility();
-            resetUpload(); // Clear file and preview on city change
+            resetUpload(); // 切換縣市時清空檔案與預覽
             checkReady();
         };
     });
 
-    // --- Service Category Change (Taipei) ---
+    // --- 服務項目類別切換邏輯 (僅限台北) ---
     const tpServiceCategoryRadios = document.querySelectorAll('input[name="tpServiceCategory"]');
     tpServiceCategoryRadios.forEach(radio => {
         radio.addEventListener('change', () => {
-            resetUpload(); // Clear file and preview on category change
+            resetUpload(); // 切換類別時清空檔案與預覽
         });
     });
 
-    // --- Upload Logic ---
+    // --- 檔案上傳與拖放邏輯 ---
     dropZone.onclick = () => fileInput.click();
 
     dropZone.ondragover = (e) => {
@@ -134,6 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
         resetUpload();
     };
 
+    /**
+     * 處理上傳的檔案
+     * @param {File} file - 上傳的檔案物件
+     */
     function handleFile(file) {
         if (!file.name.match(/\.(xlsx|xls)$/)) {
             showStatus('不支援的檔案格式', 'error');
@@ -143,6 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerProcess();
     }
 
+    /**
+     * 觸發檔案處理流程
+     */
     function triggerProcess() {
         if (!currentFile) return;
 
@@ -173,6 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsArrayBuffer(currentFile);
     }
 
+    /**
+     * 重置上傳狀態與 UI
+     */
     function resetUpload() {
         fileInput.value = '';
         currentFile = null;
@@ -183,7 +197,15 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus('請選擇縣市、輸入月份並上傳檔案', '');
     }
 
-    // --- Statistics Logic ---
+    // --- 統計邏輯區塊 ---
+
+    /**
+     * 處理個案清單統計
+     * @param {Object} data - 工作表資料 { taipei, newTaipei }
+     * @param {string} fileName - 檔案名稱
+     * @param {string} taipeiSheetName - 台北工作表名稱
+     * @param {string} newTaipeiSheetName - 新北工作表名稱
+     */
     function processCaseList(data, fileName, taipeiSheetName, newTaipeiSheetName) {
         previewContainer.innerHTML = '';
         if (serviceStatsGrid) serviceStatsGrid.classList.add('hidden');
@@ -192,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const allPayloads = [];
         const month = rocDateInput.value;
 
-        // 1. Process New Taipei
+        // 1. 處理新北
         if (data.newTaipei) {
             const ntStats = processNewTaipeiCaseStats(data.newTaipei, {
                 gender: ntGenderColInput.value,
@@ -205,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             allPayloads.push({ sheetName, rows: formatNewTaipeiCaseOutput(ntStats) });
         }
 
-        // 2. Process Taipei
+        // 2. 處理台北
         if (data.taipei) {
             const tpConfig = {
                 category: tpCategoryColInput.value,
@@ -234,6 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
         finalizePreview(fileName);
     }
 
+    /**
+     * 處理服務清冊統計
+     * @param {Array} rows - 工作表資料列
+     * @param {string} fileName - 檔案名稱
+     */
     function processServiceRegister(rows, fileName) {
         const config = {
             headerRowIdx: parseInt(headerRowIdxInput.value || '5'),
@@ -248,6 +275,10 @@ document.addEventListener('DOMContentLoaded', () => {
         finalizePreview(fileName);
     }
 
+    /**
+     * 完成統計預覽並更新 UI
+     * @param {string} fileName - 檔案名稱
+     */
     function finalizePreview(fileName) {
         fileInfo.classList.remove('hidden');
         fileInfo.querySelector('.file-name').textContent = fileName;
@@ -257,11 +288,17 @@ document.addEventListener('DOMContentLoaded', () => {
         checkReady();
     }
 
+    /**
+     * 渲染服務統計摘要
+     * @param {Object} districtStats - 行政區統計
+     * @param {Object} categoryStats - 類別統計
+     * @param {Object} subsidyStats - 補助統計
+     */
     function renderServiceStats(districtStats, categoryStats, subsidyStats) {
         previewContainer.classList.add('hidden');
         serviceStatsGrid.classList.remove('hidden');
 
-        // Sorting Administrative Districts
+        // 排序行政區順序
         const orderNT = ['三重區', '蘆洲區', '五股區', '板橋區', '土城區', '新莊區', '中和區', '永和區', '樹林區', '泰山區', '新店區'];
         const orderTP = ['松山區', '信義區', '大安區', '中山區', '中正區', '大同區', '萬華區', '文山區', '南港區', '內湖區', '士林區', '北投區'];
         const baseOrder = currentCity === '台北' ? orderTP : orderNT;
@@ -279,13 +316,13 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${districtStats[label]}</span></div>`)
             .join('') || '<div class="stat-item"><span>無資料</span></div>';
 
-        // Sorting Categories
+        // 排序類別順序
         const sortedCategories = Object.keys(categoryStats).sort((a, b) => a.localeCompare(b, 'zh-hant'));
         categoryStatsDiv.innerHTML = sortedCategories
             .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${categoryStats[label]}</span></div>`)
             .join('') || '<div class="stat-item"><span>無資料</span></div>';
 
-        // Sorting Subsidies
+        // 排序補助比率順序
         const subsidyOrder = ['100%', '95%', '84%'];
         const sortedSubsidies = Object.keys(subsidyStats).sort((a, b) => {
             const idxA = subsidyOrder.indexOf(a);
@@ -303,6 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.dataset.outputRows = JSON.stringify(outputRows);
     }
 
+    /**
+     * 建立服務統計輸出資料列
+     * @returns {Array} 格式化後的資料列陣列
+     */
     function buildServiceOutputRows(districtStats, sortedDistricts, categoryStats, sortedCategories, subsidyStats, sortedSubsidies) {
         const rows = [['【行政區統計】', '']];
         sortedDistricts.forEach(label => rows.push([label, districtStats[label]]));
@@ -313,7 +354,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return rows;
     }
 
-    // --- Validation Logic ---
+    // --- 驗證邏輯區塊 ---
+
+    /**
+     * 檢查必要資訊是否齊全以啟用同步按鈕
+     */
     function checkReady() {
         const hasCity = currentMode === 'case' || currentCity !== '';
         const hasDate = rocDateInput.value.length >= 2;
@@ -331,6 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.disabled = !(hasCity && hasDate && hasCols && hasFile);
     }
 
+    // 監聽各個輸入項目的變更
     [rocDateInput, tpCategoryColInput, tpGenderColInput, tpAgeColInput, tpLivingColInput, tpCmsColInput, ntGenderColInput, ntAgeColInput, ntLivingColInput, ntCmsColInput, districtColInput, categoryColInput, subsidyColInput, headerRowIdxInput].forEach(el => {
         el.addEventListener('input', () => {
             checkReady();
@@ -342,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Upload to GAS ---
+    // --- 同步至 GAS (Google Apps Script) 邏輯 ---
     uploadBtn.onclick = async () => {
         if (currentMode === 'service' && !currentCity) {
             showStatus('請選擇縣市', 'error');
@@ -402,12 +448,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    /**
+     * 設置按鈕的載入狀態
+     * @param {boolean} isLoading - 是否為載入中
+     */
     function setLoading(isLoading) {
         uploadBtn.disabled = isLoading;
         uploadBtn.querySelector('.btn-text').classList.toggle('hidden', isLoading);
         uploadBtn.querySelector('.loader').classList.toggle('hidden', !isLoading);
     }
 
+    /**
+     * 顯示狀態訊息
+     * @param {string} msg - 訊息內容
+     * @param {string} type - 訊息類型 ('success' 或 'error')
+     */
     function showStatus(msg, type) {
         statusMessage.textContent = msg;
         statusMessage.className = 'status-message ' + type;
