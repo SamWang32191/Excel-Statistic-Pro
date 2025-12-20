@@ -18,6 +18,7 @@ Excel Statistic Pro 採用輕量化的前端架構結合 Google 生態系，旨�
     - 使用試算表作為終端資料庫，方便行政人員直接查閱與編輯。
 
 ## 3. 環境與部署 (DevOps)
+- **套件管理**：[pnpm](https://pnpm.io/) (取代 npm 以獲得更好的效能與嚴格的依賴管理)
 - **環境變數**：`.env` (經由 Vite `import.meta.env` 管理)
     - 儲存 GAS 部署網址等敏感資訊。
 - **版本控制**：Git
