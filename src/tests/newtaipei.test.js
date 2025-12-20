@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { processNewTaipeiCaseStats } from '../js/newtaipei';
 
-describe('New Taipei Data Processing', () => {
-    it('should NOT filter rows by category for New Taipei', () => {
+describe('新北資料處理', () => {
+    it('新北不應該依類別過濾資料列', () => {
         const config = { gender: 'G' };
         const rows = [
             [],
@@ -16,7 +16,7 @@ describe('New Taipei Data Processing', () => {
         expect(stats.gender['女']).toBe(1);
     });
 
-    it('should correctly categorize age into groups for New Taipei', () => {
+    it('應該正確將新北的年齡分類到各年齡區間', () => {
         const config = { age: 'F' };
         const rows = [
             [],
@@ -36,7 +36,7 @@ describe('New Taipei Data Processing', () => {
         expect(stats.age['85 >=']).toBe(1);
     });
 
-    it('should map living status correctly for New Taipei', () => {
+    it('應該正確對應新北的居住狀況', () => {
         const config = { living: 'O' };
         const rows = [
             [],

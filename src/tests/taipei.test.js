@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { processTaipeiCaseStats } from '../js/taipei';
 
-describe('Taipei Data Filtering', () => {
-    it('should filter out rows where Category is not the target category', () => {
+describe('台北資料篩選', () => {
+    it('應該過濾掉類別不符合目標類別的資料列', () => {
         const config = { category: 'B', gender: 'H' };
         const rows = [
-            [], // Header (skipped)
-            [null, '老福', null, null, null, null, null, '男'], // Valid for '老福'
-            [null, '身障', null, null, null, null, null, '女'], // Invalid for '老福'
+            [], // 標頭列（跳過）
+            [null, '老福', null, null, null, null, null, '男'], // 符合 '老福'
+            [null, '身障', null, null, null, null, null, '女'], // 不符合 '老福'
         ];
 
         const stats = processTaipeiCaseStats(rows, config, '老福');
@@ -16,7 +16,7 @@ describe('Taipei Data Filtering', () => {
         expect(stats.gender['女']).toBe(0);
     });
 
-    it('should handle age filtering for Taipei', () => {
+    it('應該正確處理台北的年齡篩選', () => {
         const config = { category: 'B', gender: 'H', age: 'G' };
         const rows = [
             [],
@@ -33,7 +33,7 @@ describe('Taipei Data Filtering', () => {
         expect(stats50to64.gender['女']).toBe(1);
     });
 
-    it('should correctly categorize age into groups', () => {
+    it('應該正確將年齡分類到各年齡區間', () => {
         const config = { category: 'B', age: 'G' };
         const rows = [
             [],
@@ -53,7 +53,7 @@ describe('Taipei Data Filtering', () => {
         expect(stats.age['85 >=']).toBe(1);
     });
 
-    it('should map living status correctly', () => {
+    it('應該正確對應居住狀況', () => {
         const config = { category: 'B', living: 'P' };
         const rows = [
             [],

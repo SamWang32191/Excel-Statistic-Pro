@@ -1,4 +1,4 @@
-import { identifyWorksheets, colLetterToIndex } from './logic.js';
+import { identifyWorksheets, colLetterToIndex, processServiceStats } from './logic.js';
 import { processTaipeiCaseStats, formatTaipeiCaseOutput, renderTaipeiCasePreview } from './taipei.js';
 import { processNewTaipeiCaseStats, formatNewTaipeiCaseOutput, renderNewTaipeiCasePreview } from './newtaipei.js';
 
@@ -235,30 +235,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processServiceRegister(rows, fileName) {
-        const headerRowIdx = parseInt(headerRowIdxInput.value || '5');
-        const districtColIdx = colLetterToIndex(districtColInput.value || 'U');
-        const categoryColIdx = colLetterToIndex(categoryColInput.value || 'G');
-        const subsidyColIdx = colLetterToIndex(subsidyColInput.value || 'O');
+        const config = {
+            headerRowIdx: parseInt(headerRowIdxInput.value || '5'),
+            district: districtColInput.value || 'U',
+            category: categoryColInput.value || 'G',
+            subsidy: subsidyColInput.value || 'O'
+        };
 
-        const districtStats = {};
-        const categoryStats = {};
-        const subsidyStats = {};
-
-        for (let i = headerRowIdx; i < rows.length; i++) {
-            const row = rows[i];
-            if (districtColIdx !== -1 && row[districtColIdx] !== undefined) {
-                const val = row[districtColIdx].toString().trim();
-                if (val) districtStats[val] = (districtStats[val] || 0) + 1;
-            }
-            if (categoryColIdx !== -1 && row[categoryColIdx] !== undefined) {
-                const val = row[categoryColIdx].toString().trim();
-                if (val) categoryStats[val] = (categoryStats[val] || 0) + 1;
-            }
-            if (subsidyColIdx !== -1 && row[subsidyColIdx] !== undefined) {
-                const val = row[subsidyColIdx].toString().trim();
-                if (val) subsidyStats[val] = (subsidyStats[val] || 0) + 1;
-            }
-        }
+        const { districtStats, categoryStats, subsidyStats } = processServiceStats(rows, config);
 
         renderServiceStats(districtStats, categoryStats, subsidyStats);
         finalizePreview(fileName);
