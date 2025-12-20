@@ -97,3 +97,7 @@ VITE_GAS_URL=https://script.google.com/macros/s/您的部署ID/exec
 ## 部署說明
 
 請參見 [DEPLOY.md](docs/DEPLOY.md)。
+
+## 📄 授權條款
+
+本專案採用 [Apache License 2.0](LICENSE) 授權。
