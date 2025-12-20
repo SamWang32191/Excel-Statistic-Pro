@@ -10,7 +10,7 @@
 
 ## Phase 2: Project Configuration & Enforcement
 - [x] Task: 更新 package.json 加入 engines 限制與 preinstall 腳本 <!-- c4da4d7 -->
-- [ ] Task: 更新 README.md 將 npm 指令全面替換為 pnpm 指令
+- [x] Task: 更新 README.md 將 npm 指令全面替換為 pnpm 指令 <!-- 6b3765a -->
 - [ ] Task: 測試使用 npm 安裝是否會被成功阻擋
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Project Configuration & Enforcement' (Protocol in workflow.md)
 
