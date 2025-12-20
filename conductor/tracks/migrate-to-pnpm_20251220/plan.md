@@ -16,5 +16,5 @@
 
 ## Phase 3: CI/CD Migration
 - [x] Task: 修改 .github/workflows/deploy.yml 以支援 pnpm action-setup <!-- 77d1868 -->
-- [ ] Task: 提交變更並驗證 GitHub Actions 是否能正確安裝並部署
+- [x] Task: 提交變更並驗證 GitHub Actions 是否能正確安裝並部署 <!-- 7a186f2 -->
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Migration' (Protocol in workflow.md)
