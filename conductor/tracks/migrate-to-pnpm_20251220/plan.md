@@ -4,7 +4,7 @@
 
 ## Phase 1: Cleanup & Initialization
 - [x] Task: 刪除舊有的套件管理檔案 (node_modules, package-lock.json) <!-- b9f2725 -->
-- [ ] Task: 使用 pnpm 初始化依賴並生成 pnpm-lock.yaml
+- [x] Task: 使用 pnpm 初始化依賴並生成 pnpm-lock.yaml <!-- 5d47fb9 -->
 - [ ] Task: 驗證本地開發伺服器啟動是否正常 (`pnpm run dev`)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Cleanup & Initialization' (Protocol in workflow.md)
 
