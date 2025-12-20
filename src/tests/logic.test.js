@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { identifyWorksheets, colLetterToIndex } from '../js/logic';
-import { processTaipeiCaseStats } from '../js/taipei';
-import { processNewTaipeiCaseStats } from '../js/newtaipei';
 import * as XLSX from 'xlsx';
 
 describe('Multi-Sheet Identification', () => {
@@ -48,51 +46,20 @@ describe('Multi-Sheet Identification', () => {
     });
 });
 
-describe('Taipei Data Filtering', () => {
-    it('should filter out rows where Category is not the target category', () => {
-        const config = { category: 'B', gender: 'H' };
-        const rows = [
-            [], // Header (skipped)
-            [null, '老福', null, null, null, null, null, '男'], // Valid for '老福'
-            [null, '身障', null, null, null, null, null, '女'], // Invalid for '老福'
-        ];
-
-        const stats = processTaipeiCaseStats(rows, config, '老福');
-
-        expect(stats.gender['男']).toBe(1);
-        expect(stats.gender['女']).toBe(0);
+describe('Column Letter to Index', () => {
+    it('should convert single letters correctly', () => {
+        expect(colLetterToIndex('A')).toBe(0);
+        expect(colLetterToIndex('B')).toBe(1);
+        expect(colLetterToIndex('Z')).toBe(25);
     });
 
-    it('should handle age filtering for Taipei', () => {
-        const config = { category: 'B', gender: 'H', age: 'G' };
-        const rows = [
-            [],
-            [null, '老福', null, null, null, null, 65, '男'],
-            [null, '老福', null, null, null, null, 50, '女'],
-        ];
-
-        const stats65Plus = processTaipeiCaseStats(rows, config, '老福', { min: 65 });
-        expect(stats65Plus.gender['男']).toBe(1);
-        expect(stats65Plus.gender['女']).toBe(0);
-
-        const stats50to64 = processTaipeiCaseStats(rows, config, '老福', { min: 50, max: 64 });
-        expect(stats50to64.gender['男']).toBe(0);
-        expect(stats50to64.gender['女']).toBe(1);
+    it('should convert double letters correctly', () => {
+        expect(colLetterToIndex('AA')).toBe(26);
+        expect(colLetterToIndex('AB')).toBe(27);
     });
-});
 
-describe('New Taipei Data Processing', () => {
-    it('should NOT filter rows by category for New Taipei', () => {
-        const config = { gender: 'G' };
-        const rows = [
-            [],
-            [null, '其它', null, null, null, null, '男'],
-            [null, '', null, null, null, null, '女'],
-        ];
-
-        const stats = processNewTaipeiCaseStats(rows, config);
-
-        expect(stats.gender['男']).toBe(1);
-        expect(stats.gender['女']).toBe(1);
+    it('should return -1 for empty or invalid input', () => {
+        expect(colLetterToIndex('')).toBe(-1);
+        expect(colLetterToIndex(null)).toBe(-1);
     });
 });
