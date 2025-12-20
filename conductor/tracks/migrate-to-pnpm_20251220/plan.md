@@ -2,11 +2,11 @@
 
 本計畫將引導專案從 npm 遷移至 pnpm，並確保 CI/CD 流程同步更新。
 
-## Phase 1: Cleanup & Initialization
+## Phase 1: Cleanup & Initialization [checkpoint: 8ba235b]
 - [x] Task: 刪除舊有的套件管理檔案 (node_modules, package-lock.json) <!-- b9f2725 -->
 - [x] Task: 使用 pnpm 初始化依賴並生成 pnpm-lock.yaml <!-- 5d47fb9 -->
 - [x] Task: 驗證本地開發伺服器啟動是否正常 (`pnpm run dev`) <!-- 66e54a8 -->
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Cleanup & Initialization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Cleanup & Initialization' (Protocol in workflow.md) <!-- 8ba235b -->
 
 ## Phase 2: Project Configuration & Enforcement
 - [ ] Task: 更新 package.json 加入 engines 限制與 preinstall 腳本
