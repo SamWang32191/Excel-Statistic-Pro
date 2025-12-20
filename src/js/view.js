@@ -1,8 +1,12 @@
 import { identifyWorksheets, colLetterToIndex, processServiceStats } from './logic.js';
 import { processTaipeiCaseStats, formatTaipeiCaseOutput, renderTaipeiCasePreview } from './taipei.js';
 import { processNewTaipeiCaseStats, formatNewTaipeiCaseOutput, renderNewTaipeiCasePreview } from './newtaipei.js';
+import { initTheme } from './theme.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 初始化主題切換
+    initTheme();
+
     // 取得 DOM 元素
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
