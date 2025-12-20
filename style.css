@@ -303,6 +303,10 @@ select:focus {
     gap: 1.5rem;
 }
 
+.stats-grid.triples {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 .stat-card {
     background: rgba(15, 23, 42, 0.4);
     border-radius: 20px;
@@ -323,7 +327,6 @@ select:focus {
     justify-content: space-between;
     margin-bottom: 0.75rem;
     font-size: 1.25rem;
-    /* Enlarged */
 }
 
 .stat-item:last-child {
@@ -566,6 +569,14 @@ select:focus {
     justify-content: center;
     /* Centered */
     width: 100%;
+}
+
+.mt-4 {
+    margin-top: 2.5rem !important;
+}
+
+.mt-8 {
+    margin-top: 5rem !important;
 }
 
 .btn-city {

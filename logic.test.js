@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { identifyWorksheets, processCityStats, colLetterToIndex } from './logic';
+import { identifyWorksheets, colLetterToIndex } from './logic';
+import { processTaipeiCaseStats } from './taipei';
+import { processNewTaipeiCaseStats } from './newtaipei';
 import * as XLSX from 'xlsx';
 
 describe('Multi-Sheet Identification', () => {
@@ -47,55 +49,50 @@ describe('Multi-Sheet Identification', () => {
 });
 
 describe('Taipei Data Filtering', () => {
-    // Mock Helper for Column Index
-    // const colToIndex = (char) => char.charCodeAt(0) - 65; // A=0, B=1... (Already imported)
-
-    it('should filter out rows where Category is not 老福 or 身障', () => {
-        const config = { category: 'B', gender: 'H' }; // Category at index 1, Gender at index 7
-        const rows = [
-            [], // Header (skipped)
-            [null, '老福', null, null, null, null, null, '男'], // Valid
-            [null, '身障', null, null, null, null, null, '女'], // Valid
-            [null, '其它', null, null, null, null, null, '男'], // Invalid
-            [null, '', null, null, null, null, null, '女'],     // Invalid
-        ];
-
-        const stats = processCityStats(rows, config, true); // isTaipei = true
-
-        expect(stats.gender['男']).toBe(1);
-        expect(stats.gender['女']).toBe(1);
-    });
-
-    it('should NOT filter rows for New Taipei', () => {
-        const config = { gender: 'G' }; // Gender at index 6
-        const rows = [
-            [],
-            [null, '其它', null, null, null, null, '男'], // Valid (No filter)
-            [null, '', null, null, null, null, '女'],     // Valid (No filter)
-        ];
-
-        const stats = processCityStats(rows, config, false); // isTaipei = false
-
-        expect(stats.gender['男']).toBe(1);
-        expect(stats.gender['女']).toBe(1);
-    });
-
-    it('should allow filtering by specific category value', () => {
+    it('should filter out rows where Category is not the target category', () => {
         const config = { category: 'B', gender: 'H' };
         const rows = [
-            [],
-            [null, '老福', null, null, null, null, null, '男'],
-            [null, '身障', null, null, null, null, null, '女'],
+            [], // Header (skipped)
+            [null, '老福', null, null, null, null, null, '男'], // Valid for '老福'
+            [null, '身障', null, null, null, null, null, '女'], // Invalid for '老福'
         ];
 
-        // Test Specific Filter: '老福'
-        const statsElderly = processCityStats(rows, config, true, '老福');
-        expect(statsElderly.gender['男']).toBe(1);
-        expect(statsElderly.gender['女']).toBe(0);
+        const stats = processTaipeiCaseStats(rows, config, '老福');
 
-        // Test Specific Filter: '身障'
-        const statsDisabled = processCityStats(rows, config, true, '身障');
-        expect(statsDisabled.gender['男']).toBe(0);
-        expect(statsDisabled.gender['女']).toBe(1);
+        expect(stats.gender['男']).toBe(1);
+        expect(stats.gender['女']).toBe(0);
+    });
+
+    it('should handle age filtering for Taipei', () => {
+        const config = { category: 'B', gender: 'H', age: 'G' };
+        const rows = [
+            [],
+            [null, '老福', null, null, null, null, 65, '男'],
+            [null, '老福', null, null, null, null, 50, '女'],
+        ];
+
+        const stats65Plus = processTaipeiCaseStats(rows, config, '老福', { min: 65 });
+        expect(stats65Plus.gender['男']).toBe(1);
+        expect(stats65Plus.gender['女']).toBe(0);
+
+        const stats50to64 = processTaipeiCaseStats(rows, config, '老福', { min: 50, max: 64 });
+        expect(stats50to64.gender['男']).toBe(0);
+        expect(stats50to64.gender['女']).toBe(1);
+    });
+});
+
+describe('New Taipei Data Processing', () => {
+    it('should NOT filter rows by category for New Taipei', () => {
+        const config = { gender: 'G' };
+        const rows = [
+            [],
+            [null, '其它', null, null, null, null, '男'],
+            [null, '', null, null, null, null, '女'],
+        ];
+
+        const stats = processNewTaipeiCaseStats(rows, config);
+
+        expect(stats.gender['男']).toBe(1);
+        expect(stats.gender['女']).toBe(1);
     });
 });

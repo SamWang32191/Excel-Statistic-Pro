@@ -13,6 +13,9 @@
     -   行政區依台北/新北特定順序排列。
     -   補助比率固定依 `100% > 95% > 84%` 排序。
 -   **🔐 環境變數保護**: GAS API URL 透過 `.env` 檔案管理，避免機敏資訊外洩。
+-   **🏙️ 台北老福統計**: 
+    - 針對老福個案自動拆分 65+ 與 50-64 歲統計。
+    - 自動彙整「身心障礙者」統計資訊，符合最新行政報告需求。
 
 ## 🚀 快速開始
 
@@ -53,17 +56,19 @@ VITE_GAS_URL=https://script.google.com/macros/s/您的部署ID/exec
     - **服務清冊**: 設定標頭行數（預設 5）及行政區、類別、補助比率所在列。
 3. **上傳檔案**: 拖放您的 XLSX 檔案至虛線區域（切換模式會自動清除先前上傳的檔案）。
 4. **預覽結果**: 系統會依據預設或自定義排序規則顯示統計人數。
+    - 台北老福模式會顯示三段式統計（65歲以上、50-64歲、身心障礙者總計）。
 5. **同步雲端**: 點擊「確認並同步至 Google Sheet」，資料將累加至雲端試算表的工作表中。
 
 ## 🛠️ 技術架構
 
 -   **前端**: Vite, Vanilla JavaScript, CSS3
+-   **模組化設計**:
+    - `taipei.js`: 台北專屬統計與渲染邏輯。
+    - `newtaipei.js`: 新北專屬統計與渲染邏輯。
+    - `logic.js`: 通用統計工具。
+    - `script.js`: 主控制器。
 -   **解析庫**: [SheetJS (xlsx)](https://github.com/SheetJS/sheetjs)
 -   **後端**: Google Apps Script (GAS)
--   **統計細節**: 
-    - 行政區排序（新北/台北專屬順序）
-    - 補助比率排序 (`100%`, `95%`, `84%`)
-    - 年齡級距: `<= 49`, `50-64`, `65-74`, `75-84`, `>= 85`
 
 ## 📝 專案結構
 
@@ -71,9 +76,12 @@ VITE_GAS_URL=https://script.google.com/macros/s/您的部署ID/exec
 ├── gas/
 │   └── code.gs          # GAS 後端程式碼 (支援累加寫入)
 ├── index.html           # 主頁面結構
-├── script.js            # 核心邏輯處理 (雙模式支援)
+├── script.js            # 前端畫面旋染處理 (Orchestrator)
+├── logic.js             # 共用邏輯處理 (Common Utils)
+├── taipei.js            # 台北邏輯處理 (個案名單統計)
+├── newtaipei.js         # 新北邏輯處理 (個案名單統計)
 ├── style.css            # 視覺樣式
-├── .env                 # 環境變數
+├── .env                 # 環境變數 (GAS URL)
 ├── package.json         # Vite 專案設定
 └── README.md            # 專案說明文件
 ```

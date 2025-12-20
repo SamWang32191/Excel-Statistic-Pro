@@ -1,4 +1,6 @@
-import { identifyWorksheets, processCityStats, colLetterToIndex } from './logic.js';
+import { identifyWorksheets, colLetterToIndex } from './logic.js';
+import { processTaipeiCaseStats, formatTaipeiCaseOutput, renderTaipeiCasePreview } from './taipei.js';
+import { processNewTaipeiCaseStats, formatNewTaipeiCaseOutput, renderNewTaipeiCasePreview } from './newtaipei.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('dropZone');
@@ -103,13 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Utility: Column Letter to Index ---
-    // colLetterToIndex removed, using imported version implicitly inside processCityStats logic (but script.js still uses it for Service Mode?)
-    // Wait, Service Mode still uses colLetterToIndex directly!
-    // I need to import it explicitly or keep a local copy if I don't import it.
-    // I should import it.
-
-
     // --- Upload Logic ---
     dropZone.onclick = () => fileInput.click();
     
@@ -163,13 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         taipei: taipeiSheetName ? XLSX.utils.sheet_to_json(workbook.Sheets[taipeiSheetName], { header: 1 }) : null,
                         newTaipei: newTaipeiSheetName ? XLSX.utils.sheet_to_json(workbook.Sheets[newTaipeiSheetName], { header: 1 }) : null
                     };
-                    processCaseList(result, currentFile.name);
+                    processCaseList(result, currentFile.name, taipeiSheetName, newTaipeiSheetName);
                 } else {
-                    // Service List Mode: Keep original behavior (single sheet, or maybe default to first sheet?)
-                    // Spec says: "選擇台北時，新增子類別...". It implies service list might also be city-specific.
-                    // But for now, let's assume Service List still works on the FIRST sheet or user selects?
-                    // The spec mainly focuses on Case List for multi-sheet. 
-                    // Let's stick to the first sheet for Service List for now unless specified otherwise.
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
@@ -194,93 +184,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Statistics Logic ---
-    // processAndPreview removed as logic moved to triggerProcess
+    function processCaseList(data, fileName, taipeiSheetName, newTaipeiSheetName) {
+        previewContainer.innerHTML = '';
+        if (serviceStatsGrid) serviceStatsGrid.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
 
-    function processCaseList(data, fileName) {
-        // data structure: { taipei: [...], newTaipei: [...] }
-        const groups = [];
-
-        // Helper to create empty stats
-        const createEmptyStats = () => ({
-            gender: { '男': 0, '女': 0 },
-            age: { '<= 49': 0, '50 >= && <= 64': 0, '65 >= && <= 74': 0, '75 >= && <= 84': 0, '85 >=': 0 },
-            living: {},
-            cms: {}
-        });
+        const allPayloads = [];
+        const month = rocDateInput.value;
 
         // 1. Process New Taipei
-        if (data.newTaipei && data.newTaipei.length > 0) {
-            const stats = processCityStats(data.newTaipei, {
+        if (data.newTaipei) {
+            const ntStats = processNewTaipeiCaseStats(data.newTaipei, {
                 gender: ntGenderColInput.value,
                 age: ntAgeColInput.value,
                 living: ntLivingColInput.value,
                 cms: ntCmsColInput.value
             });
-            groups.push({
-                title: '新北',
-                sheetName: `新北${rocDateInput.value}`,
-                stats,
-                hasData: true
-            });
-        } else {
-            groups.push({
-                title: '新北',
-                sheetName: `新北${rocDateInput.value}`,
-                stats: createEmptyStats(),
-                hasData: false
-            });
+            const sheetName = `新北${month}`;
+            previewContainer.appendChild(renderNewTaipeiCasePreview(ntStats, sheetName));
+            allPayloads.push({ sheetName, rows: formatNewTaipeiCaseOutput(ntStats) });
         }
 
         // 2. Process Taipei
-        if (data.taipei && data.taipei.length > 0) {
-            // Taipei - Elderly (老福)
-            const statsElderly = processCityStats(data.taipei, {
+        if (data.taipei) {
+            const tpConfig = {
                 category: tpCategoryColInput.value,
                 gender: tpGenderColInput.value,
                 age: tpAgeColInput.value,
                 living: tpLivingColInput.value,
                 cms: tpCmsColInput.value
-            }, true, '老福');
+            };
 
-            groups.push({
-                title: '台北老福',
-                sheetName: `台北老福${rocDateInput.value}`,
-                stats: statsElderly,
-                hasData: statsElderly.gender['男'] + statsElderly.gender['女'] > 0
-            });
+            const elderlyTotal = processTaipeiCaseStats(data.taipei, tpConfig, '老福');
+            const elderly65Plus = processTaipeiCaseStats(data.taipei, tpConfig, '老福', { min: 65 });
+            const elderly5064 = processTaipeiCaseStats(data.taipei, tpConfig, '老福', { min: 50, max: 64 });
+            const disabled = processTaipeiCaseStats(data.taipei, tpConfig, '身障');
 
-            // Taipei - Disabled (身障)
-            const statsDisabled = processCityStats(data.taipei, {
-                category: tpCategoryColInput.value,
-                gender: tpGenderColInput.value,
-                age: tpAgeColInput.value,
-                living: tpLivingColInput.value,
-                cms: tpCmsColInput.value
-            }, true, '身障');
+            const sheetNameElderly = `台北老福${month}`;
+            const sheetNameDisabled = `台北身障${month}`;
 
-            groups.push({
-                title: '台北身障',
-                sheetName: `台北身障${rocDateInput.value}`,
-                stats: statsDisabled,
-                hasData: statsDisabled.gender['男'] + statsDisabled.gender['女'] > 0
-            });
-        } else {
-            // No Taipei Data found
-            groups.push({
-                title: '台北老福',
-                sheetName: `台北老福${rocDateInput.value}`,
-                stats: createEmptyStats(),
-                hasData: false
-            });
-            groups.push({
-                title: '台北身障',
-                sheetName: `台北身障${rocDateInput.value}`,
-                stats: createEmptyStats(),
-                hasData: false
-            });
+            previewContainer.appendChild(renderTaipeiCasePreview(elderlyTotal, elderly65Plus, elderly5064, disabled, sheetNameElderly, sheetNameDisabled));
+            
+            const tpOutputs = formatTaipeiCaseOutput(elderlyTotal, elderly65Plus, elderly5064, disabled);
+            allPayloads.push({ sheetName: sheetNameElderly, rows: tpOutputs.elderlyRows });
+            allPayloads.push({ sheetName: sheetNameDisabled, rows: tpOutputs.disabledRows });
         }
 
-        renderAllStats(groups);
+        uploadBtn.dataset.outputPayload = JSON.stringify(allPayloads);
         finalizePreview(fileName);
     }
 
@@ -294,8 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const categoryStats = {};
         const subsidyStats = {};
 
-        // 從標頭行的下一行開始 (Excel 1-based, rows is 0-based)
-        // 例如標頭是第 5 行，其索引是 4，資料從第 6 行開始 (索引 5)
         for (let i = headerRowIdx; i < rows.length; i++) {
             const row = rows[i];
             if (districtColIdx !== -1 && row[districtColIdx] !== undefined) {
@@ -323,102 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
         previewSection.classList.remove('hidden');
         showStatus('檔案已就緒，請確認統計結果', 'success');
         checkReady();
-    }
-
-    function renderAllStats(groups) {
-        previewContainer.innerHTML = ''; // Clear previous content
-        if (serviceStatsGrid) serviceStatsGrid.classList.add('hidden');
-        previewContainer.classList.remove('hidden');
-
-        // Note: Even if groups exist, they might all be empty. That's fine, we show them as empty.
-        
-        const allPayloads = [];
-
-        groups.forEach(group => {
-            const { title, sheetName, stats, hasData } = group;
-            
-            // Build HTML for this group
-            const groupHtml = document.createElement('div');
-            groupHtml.className = 'preview-group';
-            
-            if (!hasData) {
-                groupHtml.innerHTML = `
-                    <div class="preview-group-header">
-                        <span class="preview-group-title">${title}</span>
-                        <span class="preview-group-badge" style="background: rgba(100,116,139, 0.2); color: #94a3b8;">無資料</span>
-                    </div>
-                    <div class="stats-grid" style="opacity: 0.5;">
-                        <div class="stat-card"><div class="stat-label">狀態</div><div class="stat-values">無資料</div></div>
-                    </div>
-                `;
-            } else {
-                const livingOrder = ['獨居', '獨居(兩老)', '與家人或其他人同住', '與朋友同住', '其他'];
-                const livingHtml = livingOrder
-                    .filter(label => stats.living[label] !== undefined)
-                    .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${stats.living[label]}</span></div>`)
-                    .join('') || '<div class="stat-item"><span>無資料</span></div>';
-
-                const cmsOrder = ['1', '2', '3', '4', '5', '6', '7', '8'];
-                const otherCms = Object.keys(stats.cms).filter(level => !cmsOrder.includes(level)).sort();
-                const combinedCmsOrder = cmsOrder.concat(otherCms);
-                const cmsHtml = combinedCmsOrder
-                    .filter(label => stats.cms[label] !== undefined)
-                    .map(label => `<div class="stat-item"><span>${label}</span> <span class="stat-value">${stats.cms[label]}</span></div>`)
-                    .join('') || '<div class="stat-item"><span>無資料</span></div>';
-
-                groupHtml.innerHTML = `
-                    <div class="preview-group-header">
-                        <span class="preview-group-title">${title}</span>
-                        <span class="preview-group-badge">${sheetName}</span>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">性別統計</div>
-                            <div class="stat-values">
-                                <div class="stat-item"><span>男</span> <span class="stat-value">${stats.gender['男']}</span></div>
-                                <div class="stat-item"><span>女</span> <span class="stat-value">${stats.gender['女']}</span></div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">年齡分佈</div>
-                            <div class="stat-values">
-                                <div class="stat-item"><span><= 49</span> <span class="stat-value">${stats.age['<= 49']}</span></div>
-                                <div class="stat-item"><span>50 - 64</span> <span class="stat-value">${stats.age['50 >= && <= 64']}</span></div>
-                                <div class="stat-item"><span>65 - 74</span> <span class="stat-value">${stats.age['65 >= && <= 74']}</span></div>
-                                <div class="stat-item"><span>75 - 84</span> <span class="stat-value">${stats.age['75 >= && <= 84']}</span></div>
-                                <div class="stat-item"><span>>= 85</span> <span class="stat-value">${stats.age['85 >=']}</span></div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">居住狀況</div>
-                            <div class="stat-values">${livingHtml}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">CMS 等級</div>
-                            <div class="stat-values">${cmsHtml}</div>
-                        </div>
-                    </div>
-                `;
-                
-                // Prepare Payload for GAS ONLY if data exists
-                const rows = buildCaseOutputRows(stats.gender, stats.living, stats.cms, livingOrder, combinedCmsOrder, stats.age);
-                allPayloads.push({ sheetName, rows });
-            }
-            
-            previewContainer.appendChild(groupHtml);
-        });
-
-        // Store payload (only contains valid data)
-        uploadBtn.dataset.outputPayload = JSON.stringify(allPayloads);
-        
-        // Enable upload even if some parts are missing, as long as *something* is there?
-        // Or if user wants to upload partial data.
-        // Currently validation is done in 'checkReady'.
-        // We should warn if ALL are no-data.
-        if (allPayloads.length === 0) {
-            showStatus('警告：所有縣市皆無資料', 'error');
-            uploadBtn.disabled = true;
-        }
     }
 
     function renderServiceStats(districtStats, categoryStats, subsidyStats) {
@@ -465,19 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const outputRows = buildServiceOutputRows(districtStats, sortedDistricts, categoryStats, sortedCategories, subsidyStats, sortedSubsidies);
         uploadBtn.dataset.outputRows = JSON.stringify(outputRows);
-    }
-
-    function buildCaseOutputRows(stats, livingStats, cmsStats, livingOrder, cmsOrder, ageStats) {
-        // Use ageStats if provided, otherwise fallback to stats
-        const finalAgeStats = ageStats || stats;
-        
-        const rows = [['【性別統計】', ''], ['男', stats['男'] || 0], ['女', stats['女'] || 0], ['', '']];
-        rows.push(['【年齡分佈】', ''], ['<= 49', finalAgeStats['<= 49'] || 0], ['50 >= && <= 64', finalAgeStats['50 >= && <= 64'] || 0], ['65 >= && <= 74', finalAgeStats['65 >= && <= 74'] || 0], ['75 >= && <= 84', finalAgeStats['75 >= && <= 84'] || 0], ['85 >=', finalAgeStats['85 >='] || 0], ['', '']);
-        rows.push(['【居住狀況】', '']);
-        livingOrder.forEach(label => { if (livingStats[label] !== undefined) rows.push([label, livingStats[label]]); });
-        rows.push(['', ''], ['【CMS 等級】', '']);
-        cmsOrder.forEach(label => { if (cmsStats[label] !== undefined) rows.push([label, cmsStats[label]]); });
-        return rows;
     }
 
     function buildServiceOutputRows(districtStats, sortedDistricts, categoryStats, sortedCategories, subsidyStats, sortedSubsidies) {
@@ -540,10 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (currentMode === 'case') {
-                // Multi-sheet Upload
                 const payloads = JSON.parse(uploadBtn.dataset.outputPayload || '[]');
-                
-                // Upload sequentially to avoid race conditions or hitting rate limits too hard
                 for (const payload of payloads) {
                     await fetch(GAS_URL, {
                         method: 'POST',
@@ -554,17 +390,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             } else {
-                // Single sheet Upload (Service Mode)
                 const outputRows = JSON.parse(uploadBtn.dataset.outputRows || '[]');
                 let sheetNamePrefix = currentCity;
-                
                 if (currentCity === '台北') {
                     const selectedCategory = document.querySelector('input[name="tpServiceCategory"]:checked').value;
                     sheetNamePrefix = `台北${selectedCategory}`;
                 }
-                
                 const sheetName = sheetNamePrefix + rocDateInput.value;
-                
                 await fetch(GAS_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -573,7 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ sheetName, rows: outputRows })
                 });
             }
-
             showStatus('同步完成！請檢查您的 Google Sheet', 'success');
         } catch (error) {
             console.error(error);
