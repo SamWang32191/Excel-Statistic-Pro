@@ -8,11 +8,11 @@
 - [x] Task: 驗證本地開發伺服器啟動是否正常 (`pnpm run dev`) <!-- 66e54a8 -->
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Cleanup & Initialization' (Protocol in workflow.md) <!-- 8ba235b -->
 
-## Phase 2: Project Configuration & Enforcement
+## Phase 2: Project Configuration & Enforcement [checkpoint: 7ab107a]
 - [x] Task: 更新 package.json 加入 engines 限制與 preinstall 腳本 <!-- c4da4d7 -->
 - [x] Task: 更新 README.md 將 npm 指令全面替換為 pnpm 指令 <!-- 6b3765a -->
 - [x] Task: 測試使用 npm 安裝是否會被成功阻擋 <!-- d01b9d6 -->
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Project Configuration & Enforcement' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Project Configuration & Enforcement' (Protocol in workflow.md) <!-- 7ab107a -->
 
 ## Phase 3: CI/CD Migration
 - [ ] Task: 修改 .github/workflows/deploy.yml 以支援 pnpm action-setup
