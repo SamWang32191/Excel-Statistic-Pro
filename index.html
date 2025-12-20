@@ -13,8 +13,8 @@
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-CNVIVqKA.js"></script>
-  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-CG4BMqKV.css">
+  <script type="module" crossorigin src="/Excel-Statistic-Pro/assets/index-Dxtd4nd2.js"></script>
+  <link rel="stylesheet" crossorigin href="/Excel-Statistic-Pro/assets/index-BCyX0dZv.css">
 </head>
 
 <body>
@@ -35,12 +35,11 @@
 
             <section class="config-section">
                 <div class="input-group" id="cityInputGroup">
-                    <label for="citySelect">縣市</label>
-                    <select id="citySelect">
-                        <option value="" disabled selected>請選擇縣市</option>
-                        <option value="台北">台北</option>
-                        <option value="新北">新北</option>
-                    </select>
+                    <label>縣市</label>
+                    <div class="city-switch" id="citySwitch">
+                        <button type="button" class="btn-city active" data-city="台北">台北</button>
+                        <button type="button" class="btn-city" data-city="新北">新北</button>
+                    </div>
                 </div>
 
                 <div class="input-group hidden" id="tpServiceCategoryGroup">
@@ -138,20 +137,17 @@
                     </div>
                     <div class="input-group">
                         <label for="districtCol">行政區列</label>
-                        <input type="text" id="districtCol" value="U" placeholder="U" maxlength="2"
-                            pattern="[A-Za-z]*"
+                        <input type="text" id="districtCol" value="U" placeholder="U" maxlength="2" pattern="[A-Za-z]*"
                             oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                     </div>
                     <div class="input-group">
                         <label for="categoryCol">服務類別列</label>
-                        <input type="text" id="categoryCol" value="G" placeholder="G" maxlength="2"
-                            pattern="[A-Za-z]*"
+                        <input type="text" id="categoryCol" value="G" placeholder="G" maxlength="2" pattern="[A-Za-z]*"
                             oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                     </div>
                     <div class="input-group">
                         <label for="subsidyCol">補助比率列</label>
-                        <input type="text" id="subsidyCol" value="O" placeholder="O" maxlength="2"
-                            pattern="[A-Za-z]*"
+                        <input type="text" id="subsidyCol" value="O" placeholder="O" maxlength="2" pattern="[A-Za-z]*"
                             oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                     </div>
                 </div>
