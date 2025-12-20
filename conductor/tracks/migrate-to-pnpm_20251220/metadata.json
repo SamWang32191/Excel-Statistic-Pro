@@ -1,0 +1,8 @@
+{
+  "track_id": "migrate-to-pnpm_20251220",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2025-12-20T15:10:00Z",
+  "updated_at": "2025-12-20T15:10:00Z",
+  "description": "遷移專案至 pnpm"
+}
