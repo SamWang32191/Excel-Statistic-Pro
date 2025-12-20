@@ -94,5 +94,6 @@ VITE_GAS_URL=https://script.google.com/macros/s/您的部署ID/exec
 └── README.md            # 專案說明文件
 ```
 
----
-*Developed with ❤️ for efficient data management.*
+## 部署說明
+
+請參見 [DEPLOY.md](docs/DEPLOY.md)。
