@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileInput');
     const cityButtons = document.querySelectorAll('.btn-city');
     const rocDateInput = document.getElementById('rocDate');
-    
+
     // Taipei Inputs
     const tpCategoryColInput = document.getElementById('tpCategoryCol');
     const tpGenderColInput = document.getElementById('tpGenderCol');
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const districtColInput = document.getElementById('districtCol');
     const categoryColInput = document.getElementById('categoryCol');
     const subsidyColInput = document.getElementById('subsidyCol');
-    
+
     // Service Stats Containers
     const serviceStatsGrid = document.getElementById('serviceStatsGrid');
     const districtStatsDiv = document.getElementById('districtStats');
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modeButtons.forEach(btn => {
         btn.onclick = () => {
             if (btn.dataset.mode === currentMode) return;
-            
+
             // Update UI State
             modeButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cityButtons.forEach(btn => {
         btn.onclick = () => {
             if (btn.dataset.city === currentCity) return;
-            
+
             cityButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentCity = btn.dataset.city;
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Upload Logic ---
     dropZone.onclick = () => fileInput.click();
-    
+
     dropZone.ondragover = (e) => {
         e.preventDefault();
         dropZone.classList.add('dragover');
@@ -145,13 +145,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function triggerProcess() {
         if (!currentFile) return;
-        
+
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
-                
+
                 if (currentMode === 'case') {
                     const { taipeiSheetName, newTaipeiSheetName } = identifyWorksheets(workbook);
                     const result = {
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const sheetNameDisabled = `台北身障${month}`;
 
             previewContainer.appendChild(renderTaipeiCasePreview(elderlyTotal, elderly65Plus, elderly5064, disabled, sheetNameElderly, sheetNameDisabled));
-            
+
             const tpOutputs = formatTaipeiCaseOutput(elderlyTotal, elderly65Plus, elderly5064, disabled);
             allPayloads.push({ sheetName: sheetNameElderly, rows: tpOutputs.elderlyRows });
             allPayloads.push({ sheetName: sheetNameDisabled, rows: tpOutputs.disabledRows });
@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const orderNT = ['三重區', '蘆洲區', '五股區', '板橋區', '土城區', '新莊區', '中和區', '永和區', '樹林區', '泰山區', '新店區'];
         const orderTP = ['松山區', '信義區', '大安區', '中山區', '中正區', '大同區', '萬華區', '文山區', '南港區', '內湖區', '士林區', '北投區'];
         const baseOrder = currentCity === '台北' ? orderTP : orderNT;
-        
+
         const sortedDistricts = Object.keys(districtStats).sort((a, b) => {
             const idxA = baseOrder.indexOf(a);
             const idxB = baseOrder.indexOf(b);
@@ -388,6 +388,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sheetName, rows: outputRows })
                 });
+            }
+            resetUpload();
+            if (currentMode === 'case') {
+                rocDateInput.value = '';
             }
             showStatus('同步完成！請檢查您的 Google Sheet', 'success');
         } catch (error) {
