@@ -28,30 +28,26 @@ describe('整合測試 - 真實 Excel 檔案', () => {
         expect(taipeiSheetName).toBeTruthy();
         expect(newTaipeiSheetName).toBeTruthy();
 
-        // 測試台北
+        // 測試台北老福
         const taipeiRows = XLSX.utils.sheet_to_json(workbook.Sheets[taipeiSheetName], { header: 1 });
-        // 使用 index.html 預設的欄位配置
         const tpConfig = { category: 'B', gender: 'H', age: 'G', living: 'P', cms: 'K' };
         
         const tpElderly = processTaipeiCaseStats(taipeiRows, tpConfig, '老福');
-        // 基本驗證：確保有解析到資料
         const totalTpElderly = tpElderly.gender['男'] + tpElderly.gender['女'];
-        expect(totalTpElderly).toBeGreaterThan(0);
-        console.log(`Taipei Elderly Count: ${totalTpElderly}`);
+        expect(totalTpElderly).toBe(621);
 
+        // 測試台北身障
         const tpDisabled = processTaipeiCaseStats(taipeiRows, tpConfig, '身障');
         const totalTpDisabled = tpDisabled.gender['男'] + tpDisabled.gender['女'];
-        expect(totalTpDisabled).toBeGreaterThan(0);
-        console.log(`Taipei Disabled Count: ${totalTpDisabled}`);
+        expect(totalTpDisabled).toBe(30);
 
         // 測試新北
         const newTaipeiRows = XLSX.utils.sheet_to_json(workbook.Sheets[newTaipeiSheetName], { header: 1 });
-        const ntConfig = { gender: 'G', age: 'F', living: 'O', cms: 'J' }; // 使用 index.html 預設的欄位配置
+        const ntConfig = { gender: 'G', age: 'F', living: 'O', cms: 'J' };
         
         const ntStats = processNewTaipeiCaseStats(newTaipeiRows, ntConfig);
         const totalNt = ntStats.gender['男'] + ntStats.gender['女'];
-        expect(totalNt).toBeGreaterThan(0);
-        console.log(`New Taipei Count: ${totalNt}`);
+        expect(totalNt).toBe(804);
     });
 
     it('服務清冊統計（新北）', () => {
@@ -62,11 +58,26 @@ describe('整合測試 - 真實 Excel 檔案', () => {
         const config = { headerRowIdx: 5, district: 'U', category: 'G', subsidy: 'O' };
         const stats = processServiceStats(rows, config);
         
-        expect(Object.keys(stats.districtStats).length).toBeGreaterThan(0);
-        expect(Object.keys(stats.categoryStats).length).toBeGreaterThan(0);
-        expect(Object.keys(stats.subsidyStats).length).toBeGreaterThan(0);
+        // 驗證行政區統計
+        expect(stats.districtStats['三重區']).toBe(628);
+        expect(stats.districtStats['蘆洲區']).toBe(52);
+        expect(stats.districtStats['板橋區']).toBe(510);
+        expect(stats.districtStats['新莊區']).toBe(553);
         
-        console.log('New Taipei Service Stats:', JSON.stringify(stats.districtStats, null, 2));
+        // 驗證服務類別統計
+        expect(stats.categoryStats['BA07 協助沐浴及洗頭']).toBe(364);
+        expect(stats.categoryStats['BA20 陪伴服務']).toBe(385);
+        expect(stats.categoryStats['BA13 陪同外出']).toBe(345);
+        expect(stats.categoryStats['BA15-1 家務協助(自用)']).toBe(226);
+        
+        // 驗證補助比率統計
+        expect(stats.subsidyStats['84%']).toBe(1580);
+        expect(stats.subsidyStats['100%']).toBe(337);
+        expect(stats.subsidyStats['95%']).toBe(252);
+        
+        // 驗證總筆數
+        const totalRecords = Object.values(stats.districtStats).reduce((a, b) => a + b, 0);
+        expect(totalRecords).toBe(2169);
     });
 
     it('服務清冊統計（台北老福）', () => {
@@ -77,8 +88,26 @@ describe('整合測試 - 真實 Excel 檔案', () => {
         const config = { headerRowIdx: 5, district: 'U', category: 'G', subsidy: 'O' };
         const stats = processServiceStats(rows, config);
         
-        expect(Object.keys(stats.districtStats).length).toBeGreaterThan(0);
-        console.log('Taipei Elderly Service Stats:', JSON.stringify(stats.districtStats, null, 2));
+        // 驗證行政區統計
+        expect(stats.districtStats['文山區']).toBe(554);
+        expect(stats.districtStats['萬華區']).toBe(370);
+        expect(stats.districtStats['中山區']).toBe(344);
+        expect(stats.districtStats['中正區']).toBe(301);
+        
+        // 驗證服務類別統計
+        expect(stats.categoryStats['BA13 陪同外出']).toBe(374);
+        expect(stats.categoryStats['BA20 陪伴服務']).toBe(359);
+        expect(stats.categoryStats['BA15-1 家務協助(自用)']).toBe(343);
+        expect(stats.categoryStats['BA07 協助沐浴及洗頭']).toBe(324);
+        
+        // 驗證補助比率統計
+        expect(stats.subsidyStats['84%']).toBe(1909);
+        expect(stats.subsidyStats['100%']).toBe(472);
+        expect(stats.subsidyStats['95%']).toBe(74);
+        
+        // 驗證總筆數
+        const totalRecords = Object.values(stats.districtStats).reduce((a, b) => a + b, 0);
+        expect(totalRecords).toBe(2455);
     });
 
     it('服務清冊統計（台北身障）', () => {
@@ -89,7 +118,25 @@ describe('整合測試 - 真實 Excel 檔案', () => {
         const config = { headerRowIdx: 5, district: 'U', category: 'G', subsidy: 'O' };
         const stats = processServiceStats(rows, config);
         
-        expect(Object.keys(stats.districtStats).length).toBeGreaterThan(0);
-        console.log('Taipei Disabled Service Stats:', JSON.stringify(stats.districtStats, null, 2));
+        // 驗證行政區統計
+        expect(stats.districtStats['文山區']).toBe(34);
+        expect(stats.districtStats['萬華區']).toBe(12);
+        expect(stats.districtStats['大同區']).toBe(11);
+        expect(stats.districtStats['中正區']).toBe(10);
+        
+        // 驗證服務類別統計
+        expect(stats.categoryStats['BA13 陪同外出']).toBe(23);
+        expect(stats.categoryStats['BA02 基本日常照顧']).toBe(14);
+        expect(stats.categoryStats['BA20 陪伴服務']).toBe(11);
+        expect(stats.categoryStats['BA15-1 家務協助(自用)']).toBe(10);
+        
+        // 驗證補助比率統計
+        expect(stats.subsidyStats['84%']).toBe(42);
+        expect(stats.subsidyStats['100%']).toBe(27);
+        expect(stats.subsidyStats['95%']).toBe(24);
+        
+        // 驗證總筆數
+        const totalRecords = Object.values(stats.districtStats).reduce((a, b) => a + b, 0);
+        expect(totalRecords).toBe(93);
     });
 });
