@@ -14,7 +14,7 @@
 - [x] Task: 測試使用 npm 安裝是否會被成功阻擋 <!-- d01b9d6 -->
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Project Configuration & Enforcement' (Protocol in workflow.md) <!-- 7ab107a -->
 
-## Phase 3: CI/CD Migration
+## Phase 3: CI/CD Migration [checkpoint: 2ee66ac]
 - [x] Task: 修改 .github/workflows/deploy.yml 以支援 pnpm action-setup <!-- 77d1868 -->
 - [x] Task: 提交變更並驗證 GitHub Actions 是否能正確安裝並部署 <!-- 7a186f2 -->
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Migration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Migration' (Protocol in workflow.md) <!-- 2ee66ac -->
