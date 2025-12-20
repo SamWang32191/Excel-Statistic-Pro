@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { identifyWorksheets, colLetterToIndex } from './logic';
-import { processTaipeiCaseStats } from './taipei';
-import { processNewTaipeiCaseStats } from './newtaipei';
+import { identifyWorksheets, colLetterToIndex } from '../js/logic';
+import { processTaipeiCaseStats } from '../js/taipei';
+import { processNewTaipeiCaseStats } from '../js/newtaipei';
 import * as XLSX from 'xlsx';
 
 describe('Multi-Sheet Identification', () => {
