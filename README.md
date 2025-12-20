@@ -70,7 +70,7 @@ VITE_GAS_URL=https://script.google.com/macros/s/您的部署ID/exec
     - `taipei.js`: 台北專屬統計與渲染邏輯。
     - `newtaipei.js`: 新北專屬統計與渲染邏輯。
     - `logic.js`: 通用統計工具。
-    - `script.js`: 主控制器。
+    - `view.js`: 主控制器。
 -   **解析庫**: [SheetJS (xlsx)](https://github.com/SheetJS/sheetjs)
 -   **後端**: Google Apps Script (GAS)
 
@@ -79,7 +79,7 @@ VITE_GAS_URL=https://script.google.com/macros/s/您的部署ID/exec
 ```text
 ├── src/
 │   ├── js/              # 前端邏輯核心
-│   │   ├── script.js    # 主控制器 (Orchestrator)
+│   │   ├── view.js      # 主控制器 (Orchestrator)
 │   │   ├── logic.js     # 共用工具 (Common Utils)
 │   │   ├── taipei.js    # 台北統計邏輯
 │   │   └── newtaipei.js # 新北統計邏輯
