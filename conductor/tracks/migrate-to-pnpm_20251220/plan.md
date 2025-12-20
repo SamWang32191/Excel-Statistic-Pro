@@ -15,6 +15,6 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Project Configuration & Enforcement' (Protocol in workflow.md) <!-- 7ab107a -->
 
 ## Phase 3: CI/CD Migration
-- [ ] Task: 修改 .github/workflows/deploy.yml 以支援 pnpm action-setup
+- [x] Task: 修改 .github/workflows/deploy.yml 以支援 pnpm action-setup <!-- 77d1868 -->
 - [ ] Task: 提交變更並驗證 GitHub Actions 是否能正確安裝並部署
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Migration' (Protocol in workflow.md)
