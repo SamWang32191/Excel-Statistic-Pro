@@ -3,7 +3,7 @@ import { identifyWorksheets, processCityStats, colLetterToIndex } from './logic.
 document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
-    const citySelect = document.getElementById('citySelect');
+    const cityButtons = document.querySelectorAll('.btn-city');
     const rocDateInput = document.getElementById('rocDate');
     
     // Taipei Inputs
@@ -43,9 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const modeButtons = document.querySelectorAll('.btn-switch');
 
-    // Helper: Toggle Taipei Service Category visibility
     const updateTpServiceCategoryVisibility = () => {
-        const show = currentMode === 'service' && citySelect.value === '台北';
+        const show = currentMode === 'service' && currentCity === '台北';
         tpServiceCategoryGroup.classList.toggle('hidden', !show);
     };
 
@@ -54,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentFile = null;
     let currentMode = 'case'; // 'case' or 'service'
+    let currentCity = '台北'; // default city
 
     // Initial state setup
     cityInputGroup.classList.toggle('hidden', currentMode === 'case');
@@ -80,10 +80,27 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    citySelect.addEventListener('change', () => {
-        updateTpServiceCategoryVisibility();
-        checkReady();
-        if (currentFile) triggerProcess();
+    // --- City Button Switching (Service Mode) ---
+    cityButtons.forEach(btn => {
+        btn.onclick = () => {
+            if (btn.dataset.city === currentCity) return;
+            
+            cityButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCity = btn.dataset.city;
+
+            updateTpServiceCategoryVisibility();
+            resetUpload(); // Clear file and preview on city change
+            checkReady();
+        };
+    });
+
+    // --- Service Category Change (Taipei) ---
+    const tpServiceCategoryRadios = document.querySelectorAll('input[name="tpServiceCategory"]');
+    tpServiceCategoryRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            resetUpload(); // Clear file and preview on category change
+        });
     });
 
     // --- Utility: Column Letter to Index ---
@@ -411,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sorting Administrative Districts
         const orderNT = ['三重區', '蘆洲區', '五股區', '板橋區', '土城區', '新莊區', '中和區', '永和區', '樹林區', '泰山區', '新店區'];
         const orderTP = ['松山區', '信義區', '大安區', '中山區', '中正區', '大同區', '萬華區', '文山區', '南港區', '內湖區', '士林區', '北投區'];
-        const baseOrder = citySelect.value === '台北' ? orderTP : orderNT;
+        const baseOrder = currentCity === '台北' ? orderTP : orderNT;
         
         const sortedDistricts = Object.keys(districtStats).sort((a, b) => {
             const idxA = baseOrder.indexOf(a);
@@ -475,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Validation Logic ---
     function checkReady() {
-        const hasCity = currentMode === 'case' || citySelect.value !== '';
+        const hasCity = currentMode === 'case' || currentCity !== '';
         const hasDate = rocDateInput.value.length >= 2;
         const hasFile = !!currentFile;
 
@@ -491,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.disabled = !(hasCity && hasDate && hasCols && hasFile);
     }
 
-    [citySelect, rocDateInput, tpCategoryColInput, tpGenderColInput, tpAgeColInput, tpLivingColInput, tpCmsColInput, ntGenderColInput, ntAgeColInput, ntLivingColInput, ntCmsColInput, districtColInput, categoryColInput, subsidyColInput, headerRowIdxInput].forEach(el => {
+    [rocDateInput, tpCategoryColInput, tpGenderColInput, tpAgeColInput, tpLivingColInput, tpCmsColInput, ntGenderColInput, ntAgeColInput, ntLivingColInput, ntCmsColInput, districtColInput, categoryColInput, subsidyColInput, headerRowIdxInput].forEach(el => {
         el.addEventListener('input', () => {
             checkReady();
             if (currentFile) triggerProcess();
@@ -504,8 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Upload to GAS ---
     uploadBtn.onclick = async () => {
-        // 防禦性檢核：再次確認必要欄位
-        if (currentMode === 'service' && !citySelect.value) {
+        if (currentMode === 'service' && !currentCity) {
             showStatus('請選擇縣市', 'error');
             return;
         }
@@ -540,9 +556,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 // Single sheet Upload (Service Mode)
                 const outputRows = JSON.parse(uploadBtn.dataset.outputRows || '[]');
-                let sheetNamePrefix = citySelect.value;
+                let sheetNamePrefix = currentCity;
                 
-                if (citySelect.value === '台北') {
+                if (currentCity === '台北') {
                     const selectedCategory = document.querySelector('input[name="tpServiceCategory"]:checked').value;
                     sheetNamePrefix = `台北${selectedCategory}`;
                 }
