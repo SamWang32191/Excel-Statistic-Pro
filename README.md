@@ -21,10 +21,10 @@
 
 ```bash
 # 安裝依賴套件
-npm install
+pnpm install
 
 # 啟動開發伺服器
-npm run dev
+pnpm run dev
 ```
 
 ### 2. 環境變數設定
