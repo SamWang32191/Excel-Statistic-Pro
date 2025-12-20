@@ -4,9 +4,13 @@
   "description": "",
   "type": "module",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
+  },
+  "engines": {
+    "pnpm": ">=9"
   },
   "keywords": [],
   "author": "",
