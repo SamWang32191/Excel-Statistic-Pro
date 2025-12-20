@@ -34,6 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const districtColInput = document.getElementById('districtCol');
     const categoryColInput = document.getElementById('categoryCol');
     const subsidyColInput = document.getElementById('subsidyCol');
+    
+    // Service Stats Containers
+    const serviceStatsGrid = document.getElementById('serviceStatsGrid');
+    const districtStatsDiv = document.getElementById('districtStats');
+    const categoryStatsDiv = document.getElementById('categoryStats');
+    const subsidyStatsDiv = document.getElementById('subsidyStats');
+
     const modeButtons = document.querySelectorAll('.btn-switch');
 
     // Helper: Toggle Taipei Service Category visibility
@@ -303,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderAllStats(groups) {
         previewContainer.innerHTML = ''; // Clear previous content
-        serviceStatsGrid.classList.add('hidden');
+        if (serviceStatsGrid) serviceStatsGrid.classList.add('hidden');
         previewContainer.classList.remove('hidden');
 
         // Note: Even if groups exist, they might all be empty. That's fine, we show them as empty.
@@ -398,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderServiceStats(districtStats, categoryStats, subsidyStats) {
-        caseStatsGrid.classList.add('hidden');
+        previewContainer.classList.add('hidden');
         serviceStatsGrid.classList.remove('hidden');
 
         // Sorting Administrative Districts
